@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steam Account Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:         #171a21;
+  --c-bg2:        #1b2838;
+  --c-bg3:        #1e2d3d;
+  --c-surface:    #1e2430;
+  --c-border:     #2a3f5a;
+  --c-border2:    #3d6186;
+  --c-blue:       #66c0f4;
+  --c-blue-dim:   #4b8dbf;
+  --c-blue-glow:  rgba(102,192,244,0.18);
+  --c-blue-glow2: rgba(102,192,244,0.08);
+  --c-green:      #5ba32b;
+  --c-green2:     #a4d65e;
+  --c-gold:       #c8a951;
+  --c-red:        #c94f4f;
+  --c-text:       #c6d4df;
+  --c-text2:      #8f98a0;
+  --c-text3:      #556677;
+  --c-white:      #eaf0f6;
+  --f-display:    'Barlow Condensed', sans-serif;
+  --f-body:       'Barlow', sans-serif;
+  --f-mono:       'Share Tech Mono', monospace;
+  --r-card:       8px;
+  --r-sm:         4px;
+  --shadow-card:  0 4px 16px rgba(0,0,0,0.45);
+  --shadow-hover: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px var(--c-border2), 0 0 24px var(--c-blue-glow);
+  --tr:           0.2s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--f-body);background:var(--c-bg);color:var(--c-text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+img{display:block;border:0;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+
+/* ─────────────────────────────────────────
+   KEY GATE
+───────────────────────────────────────── */
+#key-gate {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #1b2838 0%, #000000 100%);
+  font-family: "Motiva Sans", Arial, Helvetica, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+#key-gate.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.key-box {
+  background: #171a21;
+  border: 1px solid #3d4450;
+  border-radius: 4px;
+  width: 400px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+  overflow: hidden;
+}
+
+.steam-header {
+  background: linear-gradient(to right, #000000 0%, #171a21 100%);
+  color: #8f98a0;
+  font-size: 12px;
+  padding: 10px 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #000;
+}
+
+.key-content {
+  padding: 30px;
+  background: linear-gradient(to bottom, #2a475e 0%, #171a21 100%);
+  text-align: center;
+}
+
+.key-title {
+  font-size: 24px;
+  color: #ffffff;
+  font-weight: 300;
+  margin-bottom: 25px;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  text-transform: uppercase;
+}
+
+.input-wrapper {
+  text-align: left;
+  margin-bottom: 20px;
+}
+.input-wrapper label {
+  display: block;
+  color: #c6d4df;
+  font-size: 12px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+#key-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid #323e4c;
+  border-radius: 3px;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+#key-input:focus {
+  border-color: #66c0f4;
+  background: rgba(0,0,0,0.6);
+}
+#key-input::placeholder { color: #4f5a66; }
+#key-input.shake {
+  animation: shake 0.4s ease;
+  border-color: #c94f4f !important;
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(6px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+
+#key-submit {
+  width: 100%;
+  padding: 2px;
+  background: linear-gradient(to right, #47bfff 5%, #1a44c2 60%);
+  border-radius: 2px;
+  border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+#key-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+#key-submit span {
+  display: block;
+  background: transparent;
+  padding: 10px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 400;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+}
+#key-submit:hover:not(:disabled) { filter: brightness(1.2); }
+
+.key-error {
+  font-size: 12px;
+  color: #e07070;
+  margin-top: 10px;
+  min-height: 18px;
+  text-align: center;
+}
+.key-last-updated {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: #556677;
+  margin-top: 6px;
+  text-align: center;
+  letter-spacing: 0.04em;
+  min-height: 16px;
+}
+.key-last-updated span { color: #66c0f4; }
+
+.key-sub {
+  font-size: 13px;
+  color: #8f98a0;
+  margin-top: 15px;
+  text-align: center;
+}
+.social-links {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #8f98a0;
+  line-height: 1.8;
+  text-align: center;
+}
+.social-links a {
+  color: #66c0f4;
+  text-decoration: none;
+  margin: 0 5px;
+  transition: color 0.2s;
+}
+.social-links a:hover { color: #ffffff; }
+
+/* Kill ALL browser focus rectangles */
+*:focus { outline: none !important; }
+*:focus-visible { outline: none !important; }
+button:focus, a:focus, select:focus, input:focus, div:focus, [tabindex]:focus { outline: none !important; box-shadow: none !important; }
+
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--c-bg);}
+::-webkit-scrollbar-thumb{background:var(--c-border2);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--c-blue-dim);}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1000px 500px at 65% -5%,rgba(27,40,56,0.85) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+/* ─────────────────────────────────────────
+   PAGE LOADER
+───────────────────────────────────────── */
+#page-loader {
+  position: fixed; inset: 0; background: var(--c-bg); z-index: 9999;
+  display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+#page-loader.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+#page-loader.fadeout {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.loader-title{font-family:var(--f-display);font-weight:800;font-size:2.2rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--c-white);}
+.loader-title span{color:var(--c-blue);}
+.loader-track{width:240px;height:2px;background:var(--c-surface);border-radius:1px;overflow:hidden;}
+.loader-bar{height:100%;background:linear-gradient(90deg,var(--c-blue-dim),var(--c-blue));width:0%;transition:width 0.4s ease;}
+.loader-sub{font-family:var(--f-mono);font-size:0.68rem;letter-spacing:0.2em;color:var(--c-text3);text-transform:uppercase;}
+
+/* ─────────────────────────────────────────
+   APP
+───────────────────────────────────────── */
+#app{position:relative;z-index:1;}
+
+.site-header{position:sticky;top:0;z-index:200;background:rgba(23,26,33,0.96);border-bottom:1px solid var(--c-border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+.header-inner{max-width:1440px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.brand{display:flex;align-items:center;gap:11px;flex-shrink:0;}
+.brand-icon{width:36px;height:36px;background:linear-gradient(145deg,var(--c-bg2),var(--c-bg3));border:1px solid var(--c-border2);border-radius:7px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px var(--c-blue-glow);flex-shrink:0;}
+.brand-icon svg{width:18px;height:18px;fill:var(--c-blue);}
+.brand-name{font-family:var(--f-display);font-weight:800;font-size:1.3rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--c-white);line-height:1;}
+.brand-name em{font-style:normal;color:var(--c-blue);}
+.brand-sub{font-family:var(--f-mono);font-size:0.58rem;letter-spacing:0.16em;color:var(--c-text3);text-transform:uppercase;margin-top:2px;}
+.header-stats{display:flex;gap:5px;}
+.hstat{display:flex;flex-direction:column;align-items:center;padding:5px 15px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-sm);min-width:66px;}
+.hstat-val{font-family:var(--f-display);font-weight:700;font-size:1.2rem;color:var(--c-blue);line-height:1;letter-spacing:0.03em;}
+.hstat-lbl{font-family:var(--f-mono);font-size:0.52rem;color:var(--c-text3);letter-spacing:0.14em;text-transform:uppercase;margin-top:2px;}
+
+.controls-bar{background:rgba(27,34,44,0.6);border-bottom:1px solid var(--c-border);}
+.controls-inner{max-width:1440px;margin:0 auto;padding:9px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:320px;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;pointer-events:none;stroke:var(--c-text3);fill:none;}
+#search-input{width:100%;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:7px 11px 7px 32px;font-family:var(--f-body);font-size:0.875rem;color:var(--c-text);outline:none !important;transition:border-color var(--tr);}
+#search-input::placeholder{color:var(--c-text3);}
+#search-input:focus{border-color:var(--c-blue-dim);}
+.sort-wrap{position:relative;}
+.sort-wrap svg{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:10px;height:10px;pointer-events:none;fill:var(--c-blue-dim);}
+#sort-select{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:7px 30px 7px 11px;font-family:var(--f-body);font-size:0.875rem;color:var(--c-text);outline:none !important;cursor:pointer;appearance:none;-webkit-appearance:none;transition:border-color var(--tr);}
+#sort-select:focus{border-color:var(--c-blue-dim);}
+#sort-select option{background:var(--c-bg2);}
+.filter-group{display:flex;gap:4px;flex-wrap:wrap;}
+.fpill{padding:6px 13px;border-radius:3px;font-family:var(--f-display);font-weight:600;font-size:0.78rem;letter-spacing:0.07em;text-transform:uppercase;border:1px solid var(--c-border);background:transparent;color:var(--c-text2);cursor:pointer;transition:all var(--tr);user-select:none;white-space:nowrap;outline:none !important;}
+.fpill:hover{border-color:var(--c-blue-dim);color:var(--c-blue);background:var(--c-blue-glow2);}
+.fpill.active{background:var(--c-blue-dim);border-color:var(--c-blue-dim);color:#fff;}
+.fetch-status{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:0.67rem;color:var(--c-text3);opacity:0;transition:opacity 0.3s;white-space:nowrap;}
+.fetch-status.on{opacity:1;}
+.fdot{width:6px;height:6px;border-radius:50%;background:var(--c-blue);animation:fdotblink 0.9s ease-in-out infinite;}
+@keyframes fdotblink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+
+.results-bar{max-width:1440px;margin:0 auto;padding:7px 28px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.results-count{font-family:var(--f-mono);font-size:0.68rem;color:var(--c-text3);letter-spacing:0.08em;}
+.results-count strong{color:var(--c-text2);}
+.cache-info{font-family:var(--f-mono);font-size:0.62rem;color:var(--c-text3);}
+
+.grid-area{max-width:1440px;margin:0 auto;padding:4px 28px 80px;}
+#cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(305px,1fr));gap:13px;}
+
+/* ─────────────────────────────────────────
+   CARD
+───────────────────────────────────────── */
+.acc-card{
+  background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-card);
+  overflow:hidden;cursor:pointer;box-shadow:var(--shadow-card);
+  transition:transform var(--tr),box-shadow var(--tr),border-color var(--tr);
+  display:flex;flex-direction:column;
+  outline:none !important;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.acc-card.animate-in{animation:cardIn 0.32s ease both;}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.acc-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-hover);border-color:var(--c-border2);}
+.acc-card:focus,.acc-card:focus-within,.acc-card:focus-visible{outline:none !important;box-shadow:var(--shadow-card) !important;}
+
+.card-banner{position:relative;height:92px;overflow:hidden;background:linear-gradient(135deg,#0d1520,#0c1825);flex-shrink:0;}
+.card-banner-img{width:100%;height:100%;object-fit:cover;opacity:0.48;transition:opacity 0.3s ease,transform 0.4s ease;filter:saturate(0.55) brightness(0.8);}
+.acc-card:hover .card-banner-img{opacity:0.72;transform:scale(1.06);filter:saturate(0.85) brightness(0.92);}
+.card-banner-fade{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,var(--c-surface) 100%);}
+.new-badge{position:absolute;top:8px;right:8px;background:var(--c-green);color:#fff;font-family:var(--f-display);font-weight:700;font-size:0.62rem;letter-spacing:0.1em;padding:2px 7px;border-radius:2px;text-transform:uppercase;}
+
+.card-body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:9px;flex:1;}
+.card-nameline{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-name{font-family:var(--f-display);font-weight:700;font-size:1rem;letter-spacing:0.04em;color:var(--c-white);line-height:1.2;word-break:break-word;}
+.card-date{font-family:var(--f-mono);font-size:0.6rem;color:var(--c-text3);white-space:nowrap;margin-top:2px;flex-shrink:0;}
+
+.icon-stack{display:flex;align-items:center;height:34px;}
+.stack-img{width:34px;height:34px;border-radius:5px;border:2px solid var(--c-surface);background:var(--c-bg);object-fit:cover;margin-left:-9px;transition:margin-left 0.22s ease;flex-shrink:0;box-shadow:-2px 0 5px rgba(0,0,0,0.4);}
+.stack-img:first-child{margin-left:0;}
+.acc-card:hover .stack-img{margin-left:-5px;}
+.stack-more{width:34px;height:34px;border-radius:5px;border:2px solid var(--c-surface);background:var(--c-bg2);margin-left:-9px;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:0.6rem;color:var(--c-blue);font-weight:700;flex-shrink:0;transition:margin-left 0.22s ease;box-shadow:-2px 0 5px rgba(0,0,0,0.4);}
+.acc-card:hover .stack-more{margin-left:-5px;}
+
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;min-height:22px;}
+.gtag{font-family:var(--f-mono);font-size:0.63rem;padding:2px 7px;border-radius:2px;background:rgba(102,192,244,0.07);border:1px solid rgba(102,192,244,0.15);color:var(--c-blue-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:135px;letter-spacing:0.02em;}
+.gtag-load{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.07);color:var(--c-text3);animation:tagpulse 1.4s ease-in-out infinite;}
+@keyframes tagpulse{0%,100%{opacity:0.4;}50%{opacity:1;}}
+
+.card-footer{margin-top:auto;padding-top:9px;border-top:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:7px;}
+.card-links{display:flex;gap:5px;flex-wrap:wrap;}
+.btn-link{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--r-sm);font-family:var(--f-display);font-weight:600;font-size:0.73rem;letter-spacing:0.06em;text-transform:uppercase;border:1px solid transparent;transition:all var(--tr);cursor:pointer;white-space:nowrap;outline:none !important;}
+.btn-work{background:rgba(102,192,244,0.09);border-color:rgba(102,192,244,0.22);color:var(--c-blue);}
+.btn-work:hover{background:var(--c-blue-dim);border-color:var(--c-blue-dim);color:#fff;box-shadow:0 0 10px var(--c-blue-glow);}
+.btn-lvert{background:rgba(200,169,81,0.09);border-color:rgba(200,169,81,0.22);color:var(--c-gold);}
+.btn-lvert:hover{background:var(--c-gold);border-color:var(--c-gold);color:#000;}
+.game-counter{font-family:var(--f-mono);font-size:0.63rem;color:var(--c-text3);white-space:nowrap;}
+.game-counter strong{color:var(--c-text2);}
+
+.empty-state{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;padding:80px 20px;gap:12px;text-align:center;}
+.empty-icon{width:58px;height:58px;border-radius:10px;background:var(--c-surface);border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+.empty-icon svg{width:26px;height:26px;stroke:var(--c-text3);fill:none;}
+.empty-title{font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing:0.07em;color:var(--c-text2);text-transform:uppercase;}
+.empty-sub{font-size:0.83rem;color:var(--c-text3);max-width:300px;}
+
+/* ─────────────────────────────────────────
+   MODAL
+───────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;z-index:800;background:rgba(10,13,18,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity 0.25s ease,visibility 0.25s ease;}
+.modal-overlay.open{opacity:1;visibility:visible;}
+.modal-box{background:var(--c-bg2);border:1px solid var(--c-border2);border-radius:10px;width:100%;max-width:720px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(102,192,244,0.07);transform:scale(0.93) translateY(16px);transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1);overflow:hidden;}
+.modal-overlay.open .modal-box{transform:scale(1) translateY(0);}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--c-border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;background:linear-gradient(135deg,var(--c-bg2),var(--c-bg3));}
+.modal-head-left{flex:1;min-width:0;}
+.modal-title{font-family:var(--f-display);font-weight:800;font-size:1.25rem;letter-spacing:0.07em;color:var(--c-white);line-height:1.1;text-transform:uppercase;}
+.modal-meta{font-family:var(--f-mono);font-size:0.66rem;color:var(--c-text3);margin-top:4px;letter-spacing:0.07em;}
+.modal-close{width:28px;height:28px;border-radius:var(--r-sm);background:rgba(255,255,255,0.05);border:1px solid var(--c-border);color:var(--c-text2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--tr);flex-shrink:0;outline:none !important;}
+.modal-close:hover{background:var(--c-red);border-color:var(--c-red);color:#fff;}
+.modal-close svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+.modal-links{padding:9px 20px;border-bottom:1px solid var(--c-border);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;background:rgba(0,0,0,0.14);min-height:44px;align-items:center;}
+.modal-no-links{font-family:var(--f-mono);font-size:0.7rem;color:var(--c-text3);}
+.modal-body{overflow-y:auto;flex:1;padding:16px 20px;}
+.modal-body::-webkit-scrollbar{width:4px;}
+.modal-body::-webkit-scrollbar-thumb{background:var(--c-border2);}
+.modal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:9px;}
+.mgame{background:var(--c-surface);border:1px solid var(--c-border);border-radius:6px;overflow:hidden;transition:border-color var(--tr),transform var(--tr);}
+.mgame:hover{border-color:var(--c-blue-dim);transform:translateY(-2px);}
+.mgame-img{width:100%;aspect-ratio:460/215;object-fit:cover;background:var(--c-bg);display:block;}
+.mgame-info{padding:6px 8px 8px;}
+.mgame-name{font-family:var(--f-display);font-weight:600;font-size:0.8rem;letter-spacing:0.02em;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mgame-id{font-family:var(--f-mono);font-size:0.58rem;color:var(--c-text3);margin-top:1px;}
+
+.site-footer{border-top:1px solid var(--c-border);padding:14px 28px;display:flex;align-items:center;justify-content:center;}
+.footer-text{font-family:var(--f-mono);font-size:0.68rem;color:var(--c-text3);letter-spacing:0.1em;}
+.footer-text a{color:var(--c-blue-dim);transition:color var(--tr);}
+.footer-text a:hover{color:var(--c-blue);}
+
+#toasts{position:fixed;bottom:18px;right:18px;z-index:9000;display:flex;flex-direction:column;gap:7px;pointer-events:none;}
+.toast{background:var(--c-surface);border:1px solid var(--c-border2);border-radius:5px;padding:8px 13px;font-family:var(--f-mono);font-size:0.7rem;color:var(--c-text2);max-width:290px;box-shadow:0 6px 18px rgba(0,0,0,0.5);animation:toastIn 0.3s ease forwards,toastOut 0.3s ease 2.7s forwards;}
+.toast-ok{border-color:rgba(90,163,43,0.5);color:var(--c-green2);}
+.toast-err{border-color:rgba(201,79,79,0.5);color:#e07070;}
+@keyframes toastIn{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:translateX(0);}}
+@keyframes toastOut{to{opacity:0;transform:translateX(14px);}}
+
+@media(max-width:900px){.header-inner,.controls-inner,.results-bar,.grid-area{padding-left:16px;padding-right:16px;}#cards-grid{grid-template-columns:repeat(auto-fill,minmax(275px,1fr));}}
+@media(max-width:600px){.header-stats{display:none;}.brand-sub{display:none;}#cards-grid{grid-template-columns:1fr;}.modal-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}.modal-box{max-height:92vh;}.site-footer{padding:12px 16px;}}
+</style>
+</head>
+<body>
+
+<!-- KEY GATE — always shown on every page load -->
+<div id="key-gate">
+  <div class="key-box">
+    <div class="steam-header">PRODUCT ACTIVATION</div>
+    <div class="key-content">
+      <div class="key-title">Enter Vault Key</div>
+      <div class="input-wrapper">
+        <label for="key-input">Product Code</label>
+        <input id="key-input" placeholder="Key from today's video" autocomplete="off" spellcheck="false">
+      </div>
+      <button id="key-submit"><span id="key-submit-text">Unlock Access</span></button>
+      <div class="key-error" id="key-error"></div>
+      <div class="key-last-updated" id="key-last-updated" style="display:none;">
+        Key last updated: <span id="key-updated-val"></span>
+      </div>
+      <div class="key-sub">The access key is hidden in the latest video.</div>
+      <div class="social-links">
+        Follow for daily keys:<br>
+        <a href="https://www.youtube.com/@revoltzW" target="_blank" rel="noopener">YouTube</a>
+        &nbsp;|&nbsp;
+        <a href="https://www.tiktok.com/@revoltzw_" target="_blank" rel="noopener">TikTok</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE LOADER -->
+<div id="page-loader">
+  <div class="loader-title">STEAM <span>VAULT</span></div>
+  <div class="loader-track"><div class="loader-bar" id="loader-bar"></div></div>
+  <div class="loader-sub" id="loader-sub">Initializing…</div>
+</div>
+
+<div id="app">
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">STEAM <em>VAULT</em></div>
+          <div class="brand-sub">Account Library</div>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="hstat"><div class="hstat-val" id="stat-accounts">–</div><div class="hstat-lbl">Accounts</div></div>
+        <div class="hstat"><div class="hstat-val" id="stat-games">–</div><div class="hstat-lbl">Games</div></div>
+        <div class="hstat"><div class="hstat-val" id="stat-showing">–</div><div class="hstat-lbl">Showing</div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="controls-bar">
+    <div class="controls-inner">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        <input id="search-input" type="text" placeholder="Search accounts or games…" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="sort-wrap">
+        <svg viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        <select id="sort-select">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="most">Most Games</option>
+          <option value="az">Name A → Z</option>
+          <option value="za">Name Z → A</option>
+        </select>
+      </div>
+      <div class="filter-group" id="filter-group">
+        <button class="fpill active" data-f="all">All</button>
+        <button class="fpill" data-f="1-3">1–3</button>
+        <button class="fpill" data-f="4-7">4–7</button>
+        <button class="fpill" data-f="8+">8+</button>
+      </div>
+      <div class="fetch-status" id="fetch-status">
+        <div class="fdot"></div><span id="fetch-label">Fetching game names…</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-bar">
+    <div class="results-count" id="results-count">Loading…</div>
+    <div class="cache-info" id="cache-info"></div>
+  </div>
+
+  <div class="grid-area">
+    <div id="cards-grid"></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-text">
+      <a href="https://tiktok.com/@revoltzw_" target="_blank" rel="noopener">TikTok</a>
+      &nbsp;·&nbsp;
+      <a href="https://youtube.com/@revoltzW" target="_blank" rel="noopener">YouTube</a>
+    </div>
+  </footer>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-meta" id="modal-meta"></div>
+      </div>
+      <button class="modal-close" id="modal-close" aria-label="Close">
+        <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="modal-links" id="modal-links"></div>
+    <div class="modal-body"><div class="modal-grid" id="modal-grid"></div></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════ */
+var ACCOUNTS_URL = "https://raw.githubusercontent.com/lusheeesh/rblx/main/svgames.json";
+var KEY_URL      = "https://raw.githubusercontent.com/lusheeesh/rblx/refs/heads/main/svkey.txt";
+var KEY_META_URL = "https://raw.githubusercontent.com/lusheeesh/rblx/refs/heads/main/svkey_updated.txt";
+
+var CACHE_KEY   = 'sv_v9';
+var CONCURRENCY = 8;    // ↑ was 4
+var BATCH_DELAY = 60;   // ↓ was 350ms — huge source of artificial slowness
+var TIMEOUT_MS  = 7000; // per-proxy timeout (proxies now race in parallel)
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+var cache      = {};
+var accounts   = [];
+var inFlight   = {}; // FIX: dedup — same appid never fetches twice simultaneously
+var state      = { filter:'all', sort:'newest', search:'' };
+var firstRender= true;
+
+/* Background boot promises — pre-loading starts immediately on page open,
+   before the user even finishes typing their key */
+var _acctPromise  = null; // resolves when accounts are loaded & normalised
+var _namesPromise = null; // resolves when all game names are pre-fetched
+var _bgDone       = false;
+
+/* ══════════════════════════════════════════
+   PLACEHOLDERS
+══════════════════════════════════════════ */
+var PH    = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='460' height='215'%3E%3Crect fill='%230d1520' width='460' height='215'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23334455' font-family='monospace' font-size='13'%3ENo Image%3C/text%3E%3C/svg%3E";
+var PH_SQ = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34'%3E%3Crect fill='%230d1520' width='34' height='34' rx='4'/%3E%3C/svg%3E";
+
+var ONERR_PH    = "this.onerror=null;this.src='" + PH    + "'";
+var ONERR_PH_SQ = "this.onerror=null;this.src='" + PH_SQ + "'";
+
+function hdr(id) { return 'https://cdn.cloudflare.steamstatic.com/steam/apps/' + id + '/header.jpg'; }
+
+/* ══════════════════════════════════════════
+   LOADER
+══════════════════════════════════════════ */
+function setLoaderBar(pct, label) {
+  var bar = document.getElementById('loader-bar');
+  var sub = document.getElementById('loader-sub');
+  if (bar) bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+  if (sub && label) sub.textContent = label;
+}
+function showLoader() {
+  var el = document.getElementById('page-loader');
+  if (el) { el.classList.remove('fadeout'); el.classList.add('visible'); }
+}
+function hideLoader() {
+  setLoaderBar(100, 'Ready');
+  setTimeout(function () {
+    var el = document.getElementById('page-loader');
+    if (el) { el.classList.remove('visible'); el.classList.add('fadeout'); }
+  }, 500);
+}
+
+/* ══════════════════════════════════════════
+   CACHE — only stores entries with real names
+══════════════════════════════════════════ */
+function cacheGet(id)        { return cache[String(id)] || null; }
+function cacheSet(id, entry) { cache[String(id)] = entry; }
+function cacheHasReal(id)    { var e = cacheGet(id); return !!(e && !e._fb && e.name); }
+
+function loadCache() {
+  try {
+    var raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return;
+    var parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      Object.keys(parsed).forEach(function (k) {
+        if (parsed[k] && !parsed[k]._fb && parsed[k].name) cache[k] = parsed[k];
+      });
+    }
+  } catch (e) { cache = {}; }
+}
+function saveCache() {
+  try {
+    var toSave = {};
+    Object.keys(cache).forEach(function (k) {
+      if (cache[k] && !cache[k]._fb && cache[k].name) toSave[k] = cache[k];
+    });
+    localStorage.setItem(CACHE_KEY, JSON.stringify(toSave));
+  } catch (e) {}
+}
+
+/* ══════════════════════════════════════════
+   FETCH HELPERS
+══════════════════════════════════════════ */
+function fetchWithTimeout(url, ms) {
+  ms = ms || TIMEOUT_MS;
+  var ctrl  = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, ms) : null;
+  var opts  = ctrl ? { signal: ctrl.signal } : {};
+  return fetch(url, opts).then(function (r) {
+    if (timer) clearTimeout(timer);
+    return r;
+  }).catch(function (e) {
+    if (timer) clearTimeout(timer);
+    throw e;
+  });
+}
+
+/* FIX: Promise.any polyfill — first fulfillment wins, ignores rejections */
+function promiseAny(promises) {
+  if (typeof Promise.any === 'function') return Promise.any(promises);
+  return new Promise(function (resolve, reject) {
+    var errors = 0;
+    var n = promises.length;
+    if (n === 0) return reject(new Error('empty'));
+    promises.forEach(function (p) {
+      Promise.resolve(p).then(resolve, function () {
+        if (++errors === n) reject(new Error('all failed'));
+      });
+    });
+  });
+}
+
+/* ══════════════════════════════════════════
+   FETCH GAME — RACING PROXIES IN PARALLEL
+   FIX: All proxies start simultaneously — fastest one wins.
+        Old code tried them one-by-one (up to 40s total per failed game).
+        New code: worst case = one proxy timeout = 7s, not 28s.
+   FIX: inFlight map prevents duplicate HTTP calls for the same appid.
+══════════════════════════════════════════ */
+function fetchGame(appid) {
+  var id  = parseInt(appid, 10);
+  if (!id || isNaN(id) || id <= 0) return Promise.resolve(null);
+  if (cacheHasReal(id))            return Promise.resolve(cacheGet(id));
+  if (inFlight[id])                return inFlight[id]; // dedup!
+
+  var STEAM = 'https://store.steampowered.com/api/appdetails/?appids=' + id;
+  var enc   = encodeURIComponent(STEAM);
+  var key   = String(id);
+
+  function extract(json) {
+    var gd = json && json[key];
+    if (!gd || !gd.success || !gd.data || !gd.data.name) throw new Error('invalid');
+    return gd.data;
+  }
+
+  /* All 4 proxies race simultaneously — first valid response wins */
+  var races = [
+    fetchWithTimeout('https://api.allorigins.win/raw?url=' + enc, TIMEOUT_MS)
+      .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(extract),
+
+    fetchWithTimeout('https://api.allorigins.win/get?url=' + enc, TIMEOUT_MS)
+      .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(w) { return JSON.parse(w.contents); })
+      .then(extract),
+
+    fetchWithTimeout('https://api.codetabs.com/v1/proxy/?quest=' + enc, TIMEOUT_MS)
+      .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(extract),
+
+    fetchWithTimeout('https://thingproxy.freeboard.io/fetch/' + STEAM, TIMEOUT_MS)
+      .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(extract)
+  ];
+
+  var p = promiseAny(races)
+    .then(function (d) {
+      var entry = {
+        id:        id,
+        name:      d.name.trim(),
+        headerImg: d.header_image || hdr(id),
+        iconImg:   hdr(id)
+      };
+      cacheSet(id, entry);
+      saveCache();
+      return entry;
+    })
+    .catch(function () { return null; })
+    .then(function (result) {
+      delete inFlight[id]; // always cleanup
+      return result;
+    });
+
+  inFlight[id] = p;
+  return p;
+}
+
+/* ══════════════════════════════════════════
+   NORMALIZE ACCOUNTS
+══════════════════════════════════════════ */
+function normalise(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(function (a, i) {
+    if (!a || typeof a !== 'object') return null;
+    var games = Array.isArray(a.games)
+      ? a.games.map(function (g) { return parseInt(g, 10); })
+               .filter(function (n) { return n > 0 && !isNaN(n); })
+      : [];
+    return {
+      id:          i,
+      name:        (a.name || 'Account ' + (i + 1)).toString().trim(),
+      games:       games,
+      date:        typeof a.date === 'string' ? a.date.trim() : '',
+      workink:     typeof a.workink === 'string' ? a.workink.trim() : '',
+      linkvertise: typeof a.linkvertise === 'string' ? a.linkvertise.trim() : ''
+    };
+  }).filter(Boolean);
+}
+
+/* ══════════════════════════════════════════
+   FILTER / SORT / SEARCH
+══════════════════════════════════════════ */
+function filterOk(n) {
+  if (state.filter === '1-3') return n >= 1 && n <= 3;
+  if (state.filter === '4-7') return n >= 4 && n <= 7;
+  if (state.filter === '8+')  return n >= 8;
+  return true;
+}
+function getVisible() {
+  var q = state.search.toLowerCase().trim();
+  var list = accounts.filter(function (a) {
+    if (!filterOk(a.games.length)) return false;
+    if (!q) return true;
+    if (a.name.toLowerCase().indexOf(q) >= 0) return true;
+    return a.games.some(function (id) {
+      var c = cacheGet(id);
+      return c && c.name && c.name.toLowerCase().indexOf(q) >= 0;
+    });
+  });
+  list.sort(function (a, b) {
+    if (state.sort === 'newest') return (b.date || '').localeCompare(a.date || '');
+    if (state.sort === 'oldest') return (a.date || '').localeCompare(b.date || '');
+    if (state.sort === 'most')   return b.games.length - a.games.length;
+    if (state.sort === 'az')     return a.name.localeCompare(b.name);
+    if (state.sort === 'za')     return b.name.localeCompare(a.name);
+    return 0;
+  });
+  return list;
+}
+
+/* ══════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════ */
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function trunc(s, max) { if (!s) return ''; return s.length > max ? s.slice(0, max) + '\u2026' : s; }
+
+function fmtDate(d) {
+  if (!d || d.length < 10 || d.endsWith('-')) return '';
+  try {
+    var dt = new Date(d + 'T00:00:00');
+    return isNaN(dt.getTime()) ? '' : dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  } catch (e) { return ''; }
+}
+function isNew(d) {
+  if (!d || d.length < 10 || d.endsWith('-')) return false;
+  try { return (Date.now() - new Date(d + 'T00:00:00').getTime()) / 86400000 <= 14; } catch (e) { return false; }
+}
+function unique(arr) {
+  var seen = {};
+  return arr.filter(function (v) { if (seen[v]) return false; seen[v] = true; return true; });
+}
+function setText(id, v) { try { var e = document.getElementById(id); if (e) e.textContent = v; } catch (e) {} }
+function setFetch(on) { try { var e = document.getElementById('fetch-status'); if (e) e.classList.toggle('on', on); } catch (e) {} }
+function setFetchLabel(t) { try { var e = document.getElementById('fetch-label'); if (e) e.textContent = t; } catch (e) {} }
+function toast(msg, type) {
+  try {
+    var c = document.getElementById('toasts'); if (!c) return;
+    var t = document.createElement('div');
+    t.className = 'toast' + (type ? ' toast-' + type : '');
+    t.textContent = msg; c.appendChild(t);
+    setTimeout(function () { try { c.removeChild(t); } catch (e) {} }, 3200);
+  } catch (e) {}
+}
+
+/* ══════════════════════════════════════════
+   BUILD TAGS / STACK HTML
+══════════════════════════════════════════ */
+function buildTagsHtml(games) {
+  if (!games || games.length === 0)
+    return '<span style="font-size:0.68rem;color:var(--c-text3);font-family:var(--f-mono)">No games</span>';
+  return games.slice(0, 5).map(function (id) {
+    var entry   = cacheGet(id);
+    var hasName = entry && entry.name && !entry._fb;
+    if (hasName) return '<span class="gtag" title="' + esc(entry.name) + '">' + esc(trunc(entry.name, 16)) + '</span>';
+    return '<span class="gtag gtag-load" title="App ' + id + '">App ' + id + '</span>';
+  }).join('');
+}
+
+function buildStackHtml(games) {
+  var sGames = games.slice(0, 5);
+  var extra  = games.length - sGames.length;
+  var html   = sGames.map(function (id) {
+    var entry = cacheGet(id);
+    var src   = (entry && entry.iconImg) ? entry.iconImg : hdr(id);
+    var nm    = (entry && entry.name)    ? entry.name    : ('App ' + id);
+    return '<img class="stack-img" src="' + esc(src) + '" alt="' + esc(nm) + '" title="' + esc(nm) + '" loading="lazy" onerror="' + ONERR_PH_SQ + '">';
+  }).join('');
+  if (extra > 0) html += '<div class="stack-more" title="' + extra + ' more">+' + extra + '</div>';
+  return html;
+}
+
+/* ══════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════ */
+function render() {
+  var grid = document.getElementById('cards-grid'); if (!grid) return;
+  var vis  = getVisible();
+  setText('stat-showing', vis.length);
+  var rc = document.getElementById('results-count');
+  if (rc) rc.innerHTML = '<strong>' + vis.length + '</strong> of ' + accounts.length + ' accounts';
+
+  if (vis.length === 0) {
+    grid.innerHTML =
+      '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></div>' +
+      '<div class="empty-title">No Accounts Found</div><div class="empty-sub">Adjust your search or filter settings.</div></div>';
+    firstRender = false; return;
+  }
+  var shouldAnimate = firstRender; firstRender = false;
+  var frag = document.createDocumentFragment();
+  vis.forEach(function (acc, i) { var card = buildCard(acc, i, shouldAnimate); if (card) frag.appendChild(card); });
+  grid.innerHTML = ''; grid.appendChild(frag);
+}
+
+function patchCards() {
+  var grid = document.getElementById('cards-grid'); if (!grid) return;
+  grid.querySelectorAll('.acc-card').forEach(function (card) {
+    var accIdx = parseInt(card.dataset.accid, 10); if (isNaN(accIdx)) return;
+    var acc    = accounts[accIdx]; if (!acc) return;
+    var tagsEl   = card.querySelector('.card-tags');
+    var stackEl  = card.querySelector('.icon-stack');
+    var bannerEl = card.querySelector('.card-banner-img');
+    if (tagsEl)  tagsEl.innerHTML  = buildTagsHtml(acc.games);
+    if (stackEl) stackEl.innerHTML = buildStackHtml(acc.games);
+    if (bannerEl) {
+      for (var i = 0; i < acc.games.length; i++) {
+        var entry = cacheGet(acc.games[i]);
+        if (entry && entry.headerImg) {
+          if (bannerEl.getAttribute('src') !== entry.headerImg) bannerEl.src = entry.headerImg;
+          break;
+        }
+      }
+    }
+  });
+}
+
+function buildCard(acc, animIdx, shouldAnimate) {
+  if (!acc) return null;
+  var el = document.createElement('div');
+  el.className    = 'acc-card' + (shouldAnimate ? ' animate-in' : '');
+  if (shouldAnimate) el.style.animationDelay = Math.min(animIdx * 0.05, 0.4) + 's';
+  el.dataset.accid = String(acc.id);
+  el.setAttribute('tabindex', '-1');
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', 'View ' + acc.name);
+
+  var bSrc = PH;
+  for (var i = 0; i < acc.games.length; i++) {
+    var e = cacheGet(acc.games[i]);
+    if (e && e.headerImg) { bSrc = e.headerImg; break; }
+  }
+  if (bSrc === PH && acc.games.length > 0) bSrc = hdr(acc.games[0]);
+
+  var badge = isNew(acc.date) ? '<div class="new-badge">New</div>' : '';
+  var ds    = fmtDate(acc.date);
+  var wl    = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Work.ink</a>'    : '';
+  var ll    = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Linkvertise</a>' : '';
+
+  el.innerHTML =
+    '<div class="card-banner">' +
+      '<img class="card-banner-img" src="' + esc(bSrc) + '" alt="" loading="lazy" onerror="' + ONERR_PH + '">' +
+      '<div class="card-banner-fade"></div>' + badge +
+    '</div>' +
+    '<div class="card-body">' +
+      '<div class="card-nameline">' +
+        '<div class="card-name">' + esc(acc.name) + '</div>' +
+        (ds ? '<div class="card-date">' + esc(ds) + '</div>' : '') +
+      '</div>' +
+      '<div class="icon-stack">' + buildStackHtml(acc.games) + '</div>' +
+      '<div class="card-tags">'  + buildTagsHtml(acc.games)  + '</div>' +
+      '<div class="card-footer">' +
+        '<div class="card-links">' + wl + ll + '</div>' +
+        '<div class="game-counter"><strong>' + acc.games.length + '</strong>&nbsp;game' + (acc.games.length !== 1 ? 's' : '') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  /* FIX: only 'click' handler — removed the old duplicate mousedown listener */
+  el.addEventListener('click', function (e) {
+    if (e.target.closest('a')) return;
+    openModal(acc);
+  });
+  return el;
+}
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+function buildModalGamesHtml(games) {
+  if (!games || games.length === 0)
+    return '<div style="font-family:var(--f-mono);font-size:0.72rem;color:var(--c-text3)">No games.</div>';
+  return games.map(function (id) {
+    var entry = cacheGet(id);
+    var nm    = (entry && entry.name && !entry._fb) ? entry.name : ('App ' + id);
+    var img   = (entry && entry.headerImg) ? entry.headerImg : hdr(id);
+    return '<div class="mgame">' +
+      '<img class="mgame-img" src="' + esc(img) + '" alt="' + esc(nm) + '" loading="lazy" onerror="' + ONERR_PH + '">' +
+      '<div class="mgame-info">' +
+        '<div class="mgame-name" title="' + esc(nm) + '">' + esc(nm) + '</div>' +
+        '<div class="mgame-id">AppID: ' + id + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openModal(acc) {
+  try {
+    var ov = document.getElementById('modal-overlay'),
+        tl = document.getElementById('modal-title'),
+        mt = document.getElementById('modal-meta'),
+        ml = document.getElementById('modal-links'),
+        mg = document.getElementById('modal-grid');
+    if (!ov || !tl || !mt || !ml || !mg) return;
+
+    tl.textContent = acc.name;
+    mt.textContent = acc.games.length + ' game' + (acc.games.length !== 1 ? 's' : '') +
+      (fmtDate(acc.date) ? '   ·   Added ' + fmtDate(acc.date) : '');
+
+    var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener">Work.ink</a>'    : '';
+    var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener">Linkvertise</a>' : '';
+    ml.innerHTML = (wl || ll) ? wl + ll : '<span class="modal-no-links">No links available</span>';
+    mg.innerHTML = buildModalGamesHtml(acc.games);
+
+    ov.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    var missing = acc.games.filter(function (id) { return !cacheHasReal(id); });
+    if (missing.length > 0) {
+      /* FIX: fetchGame already deduplicates — no redundant requests even if
+         called for games being fetched by the background pipeline */
+      Promise.all(missing.map(fetchGame)).then(function () {
+        if (ov.classList.contains('open')) mg.innerHTML = buildModalGamesHtml(acc.games);
+        patchCards();
+      }).catch(function () {});
+    }
+  } catch (e) { console.error('[SteamVault] openModal error:', e); }
+}
+
+function closeModal() {
+  try {
+    var ov = document.getElementById('modal-overlay');
+    if (ov) ov.classList.remove('open');
+    document.body.style.overflow = '';
+  } catch (e) {}
+}
+
+/* ══════════════════════════════════════════
+   STATS
+══════════════════════════════════════════ */
+function updateStats() {
+  var total = accounts.reduce(function (s, a) { return s + a.games.length; }, 0);
+  setText('stat-accounts', accounts.length);
+  setText('stat-games',    total);
+  setText('stat-showing',  getVisible().length);
+}
+function updateCacheInfo() {
+  var all = unique(accounts.reduce(function (arr, a) { return arr.concat(a.games); }, []));
+  var ok  = all.filter(function (id) { return cacheHasReal(id); }).length;
+  var ci  = document.getElementById('cache-info');
+  if (ci) ci.textContent = ok + '/' + all.length + ' names loaded';
+}
+
+/* ══════════════════════════════════════════
+   FETCH PIPELINE
+   FIX: BATCH_DELAY now 60ms (was 350ms). With 20 games at concurrency 8,
+        that's 3 batches × 60ms = 180ms overhead vs 1750ms before.
+══════════════════════════════════════════ */
+function fetchAll(onProgress) {
+  var all     = unique(accounts.reduce(function (arr, a) { return arr.concat(a.games); }, []));
+  var missing = all.filter(function (id) { return !cacheHasReal(id); });
+
+  if (missing.length === 0) {
+    setFetch(false); updateCacheInfo(); patchCards();
+    if (onProgress) onProgress(1.0, 'All names cached');
+    return Promise.resolve();
+  }
+
+  setFetch(true);
+  setFetchLabel('Fetching ' + missing.length + ' game name' + (missing.length !== 1 ? 's' : '') + '…');
+  if (onProgress) onProgress(0, 'Loading game names…');
+
+  var total = missing.length;
+  var done  = 0;
+  var idx   = 0;
+
+  function next() {
+    if (idx >= missing.length) {
+      setFetch(false); updateCacheInfo(); patchCards();
+      if (onProgress) onProgress(1.0, 'Done');
+      return Promise.resolve();
+    }
+    var batch = missing.slice(idx, idx + CONCURRENCY); idx += CONCURRENCY;
+    return Promise.allSettled(batch.map(fetchGame)).then(function () {
+      done += batch.length;
+      var pct   = done / total;
+      var ready = all.filter(function (id) { return cacheHasReal(id); }).length;
+      setFetchLabel(ready + '/' + all.length + ' names loaded');
+      if (onProgress) onProgress(pct, ready + ' / ' + all.length + ' games loaded');
+      patchCards(); updateStats();
+      return new Promise(function (r) { setTimeout(r, BATCH_DELAY); });
+    }).then(next);
+  }
+  return next();
+}
+
+/* ══════════════════════════════════════════
+   EVENTS
+══════════════════════════════════════════ */
+function bindEvents() {
+  var si = document.getElementById('search-input');
+  if (si) {
+    var t;
+    si.addEventListener('input', function () {
+      clearTimeout(t);
+      t = setTimeout(function () { firstRender = false; state.search = si.value || ''; render(); updateStats(); }, 160);
+    });
+  }
+
+  var ss = document.getElementById('sort-select');
+  if (ss) ss.addEventListener('change', function () { firstRender = false; state.sort = ss.value || 'newest'; render(); });
+
+  var fg = document.getElementById('filter-group');
+  if (fg) fg.addEventListener('click', function (e) {
+    var p = e.target.closest('.fpill'); if (!p) return;
+    fg.querySelectorAll('.fpill').forEach(function (x) { x.classList.remove('active'); });
+    p.classList.add('active');
+    firstRender = false; state.filter = p.dataset.f || 'all'; render(); updateStats();
+  });
+
+  var cb = document.getElementById('modal-close');
+  if (cb) cb.addEventListener('click', closeModal);
+  var ov = document.getElementById('modal-overlay');
+  if (ov) ov.addEventListener('click', function (e) { if (e.target === ov) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+}
+
+/* ══════════════════════════════════════════
+   BACKGROUND PRE-LOADER
+   Starts immediately when page opens — before the user finishes entering their
+   key. By the time they hit "Unlock", accounts and game names are already ready.
+
+   FIX (critical): The original code called loadAccounts() as a fire-and-forget
+   async function, then immediately called normalise(ACCOUNTS) in initApp()
+   which almost always ran before the fetch completed → empty accounts array.
+══════════════════════════════════════════ */
+function startBackgroundLoad() {
+  _acctPromise = fetchWithTimeout(ACCOUNTS_URL, 12000)
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      loadCache();
+      accounts = normalise(Array.isArray(data) ? data : []);
+      /* Start pre-fetching game names silently in the background.
+         inFlight dedup means initApp's fetchAll call won't duplicate these. */
+      if (accounts.length > 0) {
+        _namesPromise = fetchAll(null).then(function () { _bgDone = true; });
+      } else {
+        _bgDone = true;
+      }
+    })
+    .catch(function (e) {
+      console.warn('[SteamVault] Background account load failed:', e.message);
+      loadCache();
+      _bgDone = true;
+    });
+
+  return _acctPromise;
+}
+
+/* ══════════════════════════════════════════
+   MAIN APP INIT — called after key is verified
+══════════════════════════════════════════ */
+function initApp() {
+  try {
+    bindEvents();
+    setLoaderBar(20, 'Loading accounts…');
+
+    /* Wait for background account load to complete (usually already done) */
+    var ready = _acctPromise || Promise.resolve();
+
+    ready.then(function () {
+      try {
+        if (accounts.length === 0) {
+          var grid = document.getElementById('cards-grid');
+          if (grid) grid.innerHTML =
+            '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg></div>' +
+            '<div class="empty-title">No Accounts Configured</div><div class="empty-sub">Add entries to the accounts JSON.</div></div>';
+          setText('results-count', '0 accounts'); hideLoader(); return;
+        }
+
+        setLoaderBar(50, 'Rendering accounts…');
+        updateStats(); firstRender = true; render(); updateCacheInfo();
+
+        if (_bgDone) {
+          /* Background finished everything — just render and go */
+          setLoaderBar(100, 'Ready'); setTimeout(hideLoader, 300);
+        } else {
+          /* Background still running — attach progress display to it */
+          setLoaderBar(60, 'Fetching game data…');
+          var p = _namesPromise || fetchAll(function (pct, label) {
+            setLoaderBar(60 + (pct * 37), label);
+          });
+          p.then(function () {
+            patchCards(); updateStats(); updateCacheInfo();
+            setLoaderBar(100, 'Ready'); setTimeout(hideLoader, 300);
+          }).catch(function (err) {
+            console.warn('[SteamVault] fetchAll error:', err);
+            toast('Some game names could not be loaded', 'err');
+            hideLoader();
+          });
+        }
+      } catch (err) {
+        console.error('[SteamVault] Init inner error:', err);
+        try { hideLoader(); } catch (e) {}
+        toast('Startup error — see console', 'err');
+      }
+    }).catch(function (err) {
+      console.error('[SteamVault] Init error:', err);
+      try { hideLoader(); } catch (e) {}
+      toast('Startup error — see console', 'err');
+    });
+  } catch (err) {
+    console.error('[SteamVault] Init error:', err);
+    try { hideLoader(); } catch (e) {}
+    toast('Startup error — see console', 'err');
+  }
+}
+
+/* ══════════════════════════════════════════
+   KEY GATE
+══════════════════════════════════════════ */
+async function getDailyKey() {
+  try {
+    var res = await fetchWithTimeout(KEY_URL + '?t=' + Date.now(), 8000);
+    if (!res.ok) throw new Error('status ' + res.status);
+    return (await res.text()).trim();
+  } catch (e) {
+    console.warn('[SteamVault] Key fetch error:', e.message);
+    return null;
+  }
+}
+
+async function loadKeyMeta() {
+  try {
+    var res = await fetchWithTimeout(KEY_META_URL + '?t=' + Date.now(), 6000);
+    if (!res.ok) throw new Error('status ' + res.status);
+    var txt = (await res.text()).trim();
+    if (txt) {
+      var valEl = document.getElementById('key-updated-val');
+      var rowEl = document.getElementById('key-last-updated');
+      if (valEl) valEl.textContent = txt;
+      if (rowEl) rowEl.style.display = '';
+    }
+  } catch (e) { /* silent — row stays hidden */ }
+}
+
+function setKeyError(msg) { var el = document.getElementById('key-error'); if (el) el.textContent = msg || ''; }
+function setKeySubmitState(loading) {
+  var btn  = document.getElementById('key-submit');
+  var text = document.getElementById('key-submit-text');
+  if (btn)  btn.disabled = loading;
+  if (text) text.textContent = loading ? 'Checking…' : 'Unlock Access';
+}
+
+async function checkKey() {
+  var input = (document.getElementById('key-input').value || '').trim();
+  if (!input) { setKeyError('Please enter a key.'); return; }
+
+  setKeyError(''); setKeySubmitState(true);
+
+  var key = await getDailyKey();
+
+  if (!key) {
+    setKeyError('Could not reach key server. Try again.');
+    setKeySubmitState(false);
+    return;
+  }
+
+  if (input === key) {
+    document.getElementById('key-gate').classList.add('hidden');
+    showLoader();
+    setLoaderBar(10, 'Initializing…');
+    /* Small rAF delay so the loader transition is visible before JS kicks in */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        setLoaderBar(25, 'Loading vault…');
+        initApp();
+      });
+    });
+  } else {
+    setKeySubmitState(false);
+    setKeyError("Incorrect key. Check today's video.");
+    var inp = document.getElementById('key-input');
+    if (inp) {
+      inp.classList.remove('shake');
+      void inp.offsetWidth;
+      inp.classList.add('shake');
+      setTimeout(function () { inp.classList.remove('shake'); }, 500);
+    }
+  }
+}
+
+/* ══════════════════════════════════════════
+   BOOT — runs immediately on page load
+   Background loading starts NOW, before the user enters the key.
+══════════════════════════════════════════ */
+(function boot() {
+  /* Start pre-loading accounts + game names in background immediately */
+  startBackgroundLoad();
+
+  /* Load key metadata for display */
+  loadKeyMeta();
+
+  /* Key gate handlers */
+  document.getElementById('key-submit').addEventListener('click', checkKey);
+  document.getElementById('key-input').addEventListener('keyup', function (e) {
+    if (e.key === 'Enter') checkKey();
+  });
+  document.getElementById('key-input').focus();
+})();
+
+})();
+</script>
+</body>
+</html>
