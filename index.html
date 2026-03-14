@@ -502,6 +502,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <div id="toasts"></div>
 
+<script>
 function trackAdClick(accName, accId, method) {
   try {
     posthog.capture('ad_click', {
@@ -510,6 +511,7 @@ function trackAdClick(accName, accId, method) {
     });
   } catch (e) {}
 }
+</script>
 
 <script>
 (function () {
