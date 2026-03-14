@@ -502,6 +502,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <div id="toasts"></div>
 
+function trackAdClick(accName, accId, method) {
+  try {
+    posthog.capture('ad_click', {
+      vault_name: accName || ('Vault #' + accId),
+      ad_method:  method
+    });
+  } catch (e) {}
+}
+
 <script>
 (function () {
 'use strict';
@@ -854,16 +863,6 @@ function patchCards() {
   });
 }
 
-function trackAdClick(accName, accId, method) {
-  try {
-    window.va('event', {
-      name:   'ad_click',
-      vault:  accName || ('Vault #' + accId),
-      method: method   // 'workink' or 'linkvertise'
-    });
-  } catch (e) {}
-}
-
 function buildCard(acc, animIdx, shouldAnimate) {
   if (!acc) return null;
   var el = document.createElement('div');
@@ -944,13 +943,14 @@ function openModal(acc) {
     tl.textContent = acc.name;
     mt.textContent = acc.games.length + ' game' + (acc.games.length !== 1 ? 's' : '') +
       (fmtDate(acc.date) ? '   ·   Added ' + fmtDate(acc.date) : '');
-      
+
     var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
     var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
     ml.innerHTML = (wl || ll) ? wl + ll : '<span class="modal-no-links">No links available</span>';
     mg.innerHTML = buildModalGamesHtml(acc.games);
 
     ov.classList.add('open');
+    posthog.capture('vault_opened', { vault_name: acc.name, vault_id: acc.id });
     document.body.style.overflow = 'hidden';
 
     var missing = acc.games.filter(function (id) { return !cacheHasReal(id); });
@@ -1208,7 +1208,6 @@ async function checkKey() {
   }
 
   if (input === key) {
-    window.va('event', { name: 'key_unlocked' });
     document.getElementById('key-gate').classList.add('hidden');
     showLoader();
     setLoaderBar(10, 'Initializing…');
@@ -1253,9 +1252,14 @@ async function checkKey() {
 
 })();
 </script>
-<script defer src="/_vercel/insights/script.js"></script>
+
 <script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_S2P1r3tLBUYh1T0z1F5a4ffWgKyhUJL7i1R0Shjp8br', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-01-30'
+    })
 </script>
+
 </body>
 </html>
