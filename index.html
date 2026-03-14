@@ -764,7 +764,7 @@ function fmtDate(d) {
 }
 function isNew(d) {
   if (!d || d.length < 10 || d.endsWith('-')) return false;
-  try { return (Date.now() - new Date(d + 'T00:00:00').getTime()) / 86400000 <= 14; } catch (e) { return false; }
+  try { return (Date.now() - new Date(d + 'T00:00:00').getTime()) / 86400000 <= 2; } catch (e) { return false; }
 }
 function unique(arr) {
   var seen = {};
