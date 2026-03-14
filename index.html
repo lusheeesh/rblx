@@ -854,6 +854,16 @@ function patchCards() {
   });
 }
 
+function trackAdClick(accName, accId, method) {
+  try {
+    window.va('event', {
+      name:   'ad_click',
+      vault:  accName || ('Vault #' + accId),
+      method: method   // 'workink' or 'linkvertise'
+    });
+  } catch (e) {}
+}
+
 function buildCard(acc, animIdx, shouldAnimate) {
   if (!acc) return null;
   var el = document.createElement('div');
@@ -873,8 +883,8 @@ function buildCard(acc, animIdx, shouldAnimate) {
 
   var badge = isNew(acc.date) ? '<div class="new-badge">New</div>' : '';
   var ds    = fmtDate(acc.date);
-  var wl    = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Work.ink</a>'    : '';
-  var ll    = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Linkvertise</a>' : '';
+  var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
+  var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
 
   el.innerHTML =
     '<div class="card-banner">' +
@@ -934,9 +944,9 @@ function openModal(acc) {
     tl.textContent = acc.name;
     mt.textContent = acc.games.length + ' game' + (acc.games.length !== 1 ? 's' : '') +
       (fmtDate(acc.date) ? '   ·   Added ' + fmtDate(acc.date) : '');
-
-    var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener">Work.ink</a>'    : '';
-    var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener">Linkvertise</a>' : '';
+      
+    var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
+    var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
     ml.innerHTML = (wl || ll) ? wl + ll : '<span class="modal-no-links">No links available</span>';
     mg.innerHTML = buildModalGamesHtml(acc.games);
 
@@ -1198,6 +1208,7 @@ async function checkKey() {
   }
 
   if (input === key) {
+    window.va('event', { name: 'key_unlocked' });
     document.getElementById('key-gate').classList.add('hidden');
     showLoader();
     setLoaderBar(10, 'Initializing…');
@@ -1241,6 +1252,10 @@ async function checkKey() {
 })();
 
 })();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 </body>
 </html>
