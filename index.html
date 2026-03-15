@@ -1412,10 +1412,32 @@ async function checkKey() {
   if (!key) {
     setKeyError('Could not reach key server. Try again.');
     setKeySubmitState(false);
+    sendDiscord({
+      embeds: [{
+        title: '⚠️ Key Server Unreachable',
+        color: 0xc94f4f,
+        fields: [{ name: 'User', value: SV_UID, inline: true }],
+        footer: { text: 'Steam Vault Stats' },
+        timestamp: new Date().toISOString()
+      }]
+    }, true);
     return;
   }
 
   if (input === key) {
+    sendDiscord({
+      embeds: [{
+        title: '✅ Correct Key Entered',
+        color: 0x5ba32b,
+        fields: [
+          { name: 'User', value: SV_UID,            inline: true },
+          { name: 'Key',  value: '`' + input + '`', inline: true }
+        ],
+        footer: { text: 'Steam Vault Stats' },
+        timestamp: new Date().toISOString()
+      }]
+    }, true);
+
     document.getElementById('key-gate').classList.add('hidden');
     showLoader();
     setLoaderBar(10, 'Initializing…');
@@ -1427,6 +1449,19 @@ async function checkKey() {
       });
     });
   } else {
+    sendDiscord({
+      embeds: [{
+        title: '❌ Wrong Key Attempt',
+        color: 0xc94f4f,
+        fields: [
+          { name: 'User',    value: SV_UID,            inline: true },
+          { name: 'Entered', value: '`' + input + '`', inline: true }
+        ],
+        footer: { text: 'Steam Vault Stats' },
+        timestamp: new Date().toISOString()
+      }]
+    }, true);
+
     setKeySubmitState(false);
     setKeyError("Incorrect key. Check today's video.");
     var inp = document.getElementById('key-input');
@@ -1438,7 +1473,6 @@ async function checkKey() {
     }
   }
 }
-
 /* ══════════════════════════════════════════
    BOOT — runs immediately on page load
    Background loading starts NOW, before the user enters the key.
