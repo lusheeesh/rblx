@@ -532,11 +532,26 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div id="toasts"></div>
 
 <script>
-function sendDiscord(payload) {
+/* ── PERSISTENT USER ID ── */
+function getUserId() {
   try {
-    navigator.sendBeacon('/api/notify', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    var id = localStorage.getItem('sv_uid');
+    if (!id) {
+      id = 'u_' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      localStorage.setItem('sv_uid', id);
+    }
+    return id;
+  } catch (e) { return 'u_UNKNOWN'; }
+}
+var SV_UID = getUserId();
+
+/* ── SEND TO DISCORD ── */
+function sendDiscord(payload, stats) {
+  var body = JSON.stringify({ payload: payload, stats: !!stats });
+  try {
+    navigator.sendBeacon('/api/notify', new Blob([body], { type: 'application/json' }));
   } catch (e) {
-    try { fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true }); } catch (e2) {}
+    try { fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true }); } catch (e2) {}
   }
 }
 
@@ -544,51 +559,90 @@ function getSessionUrl() {
   try { return posthog.get_session_replay_url({ withTimestamp: true }) || null; } catch (e) { return null; }
 }
 
+/* ── AD CLICK ── */
 function trackAdClick(accName, accId, method) {
-  try { posthog.capture('ad_click', { vault_name: accName || ('Vault #' + accId), ad_method: method }); } catch (e) {}
+  try { posthog.capture('ad_click', { vault_name: accName || ('Vault #' + accId), ad_method: method, user_id: SV_UID }); } catch (e) {}
+
+  /* Main channel */
   sendDiscord({
     embeds: [{
-      title: 'Ad Click',
+      title: '🔗 Ad Click',
       color: 0x66c0f4,
       fields: [
-        { name: 'Vault',  value: accName || ('Vault #' + accId), inline: true },
-        { name: 'Method', value: method,                         inline: true }
+        { name: 'User',   value: SV_UID,                          inline: true },
+        { name: 'Vault',  value: accName || ('Vault #' + accId),  inline: true },
+        { name: 'Method', value: method,                          inline: true }
       ],
       footer: { text: 'Steam Vault' },
       timestamp: new Date().toISOString()
     }]
-  });
-}
+  }, false);
 
-function notifyVaultOpen(accName, accId) {
-  var sessionUrl = getSessionUrl();
+  /* Stats channel */
   sendDiscord({
     embeds: [{
-      title: 'Vault Opened',
+      title: '📊 Ad Click Stat',
+      color: 0x66c0f4,
+      description:
+        '**User:** `' + SV_UID + '`\n' +
+        '**Vault:** ' + (accName || ('Vault #' + accId)) + '\n' +
+        '**Method:** `' + method + '`',
+      footer: { text: 'Steam Vault Stats' },
+      timestamp: new Date().toISOString()
+    }]
+  }, true);
+}
+
+/* ── VAULT OPEN ── */
+function notifyVaultOpen(accName, accId) {
+  var sessionUrl = getSessionUrl();
+
+  /* Main channel */
+  sendDiscord({
+    embeds: [{
+      title: '👁️ Vault Opened',
       color: 0xc8a951,
       fields: [
+        { name: 'User',  value: SV_UID,                         inline: true },
         { name: 'Vault', value: accName || ('Vault #' + accId), inline: true },
         sessionUrl ? { name: 'Session', value: '[Watch](' + sessionUrl + ')', inline: true } : null
       ].filter(Boolean),
       footer: { text: 'Steam Vault' },
       timestamp: new Date().toISOString()
     }]
-  });
+  }, false);
+
+  /* Stats channel */
+  sendDiscord({
+    embeds: [{
+      title: '📊 Vault Open Stat',
+      color: 0xc8a951,
+      description:
+        '**User:** `' + SV_UID + '`\n' +
+        '**Vault:** ' + (accName || ('Vault #' + accId)),
+      footer: { text: 'Steam Vault Stats' },
+      timestamp: new Date().toISOString()
+    }]
+  }, true);
 }
 
+/* ── SESSION END ── */
 window.addEventListener('visibilitychange', function () {
   if (document.visibilityState !== 'hidden') return;
   var sessionUrl = getSessionUrl();
   if (!sessionUrl) return;
   sendDiscord({
     embeds: [{
-      title: 'Session Ended',
+      title: '📹 Session Ended',
       color: 0x5ba32b,
-      description: '[View Recording](' + sessionUrl + ')',
+      fields: [
+        { name: 'User', value: SV_UID, inline: true },
+        { name: 'Recording', value: '[Watch](' + sessionUrl + ')', inline: true }
+      ],
       footer: { text: 'Steam Vault' },
       timestamp: new Date().toISOString()
     }]
-  });
+  }, false);
 });
 </script>
 
