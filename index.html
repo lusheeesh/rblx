@@ -422,7 +422,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="key-last-updated" id="key-last-updated" style="display:none;">
         Key last updated: <span id="key-updated-val"></span>
       </div>
-      <div class="key-sub">The access key is hidden in the latest video.</div>
+      <div class="key-sub">The access key is in the latest video comment.</div>
       <div class="social-links">
         Follow for daily keys:<br>
         <a href="https://www.youtube.com/@revoltzW" target="_blank" rel="noopener">YouTube</a>
@@ -1542,7 +1542,7 @@ async function checkKey() {
     }, true);
 
     setKeySubmitState(false);
-    setKeyError("Incorrect key. Check today's video.");
+    setKeyError("Incorrect key. Check today's video comment.");
     var inp = document.getElementById('key-input');
     if (inp) {
       inp.classList.remove('shake');
