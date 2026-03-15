@@ -397,6 +397,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <button id="key-submit"><span id="key-submit-text">Unlock Access</span></button>
       <div class="key-error" id="key-error"></div>
+      <div class="key-last-updated" id="site-last-updated" style="display:none;">
+        Site last updated: <span id="site-updated-val"></span>
+      </div>
       <div class="key-last-updated" id="key-last-updated" style="display:none;">
         Key last updated: <span id="key-updated-val"></span>
       </div>
@@ -1181,6 +1184,24 @@ function timeAgo(date) {
   return date.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 
+async function loadSiteMeta() {
+  try {
+    var res = await fetchWithTimeout(
+      'https://api.github.com/repos/lusheeesh/rblx/commits?path=index.html&per_page=1',
+      6000
+    );
+    if (!res.ok) throw new Error('status ' + res.status);
+    var data = await res.json();
+    var date = data[0]?.commit?.committer?.date;
+    if (date) {
+      var valEl = document.getElementById('site-updated-val');
+      var rowEl = document.getElementById('site-last-updated');
+      if (valEl) valEl.textContent = timeAgo(new Date(date));
+      if (rowEl) rowEl.style.display = '';
+    }
+  } catch (e) { /* silent */ }
+}
+
 async function loadKeyMeta() {
   try {
     var res = await fetchWithTimeout(
@@ -1253,8 +1274,9 @@ async function checkKey() {
   /* Start pre-loading accounts + game names in background immediately */
   startBackgroundLoad();
 
-  /* Load key metadata for display */
+  /* Load metadatas for display */
   loadKeyMeta();
+  loadSiteMeta();
 
   /* Key gate handlers */
   document.getElementById('key-submit').addEventListener('click', checkKey);
