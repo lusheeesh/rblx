@@ -1817,7 +1817,7 @@ async function checkKey() {
     return;
   }
 
-  if (input === key) {
+  if (input.toLowerCase() === key.toLowerCase()) {
     sendDiscord({
       embeds: [{
         title: '✅ Correct Key Entered',
