@@ -526,7 +526,7 @@ function trackAdClick(accName, accId, method) {
 var ACCOUNTS_URL = "https://raw.githubusercontent.com/lusheeesh/rblx/main/svgames.json";
 var KEY_URL      = "https://raw.githubusercontent.com/lusheeesh/rblx/refs/heads/main/svkey.txt";
 
-var CACHE_KEY   = 'sv_v9';
+var CACHE_KEY   = 'sv_v10';
 var CONCURRENCY = 8;    // ↑ was 4
 var BATCH_DELAY = 60;   // ↓ was 350ms — huge source of artificial slowness
 var TIMEOUT_MS  = 7000; // per-proxy timeout (proxies now race in parallel)
@@ -688,7 +688,7 @@ function fetchGame(appid) {
         id:        id,
         name:      d.name.trim(),
         headerImg: d.header_image || hdr(id),
-        iconImg:   hdr(id)
+        iconImg:   d.header_image || hdr(id)
       };
       cacheSet(id, entry);
       saveCache();
