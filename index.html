@@ -7,6 +7,265 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
+
+/* ─────────────────────────────────────────
+   RESPONSE NOTIFICATION
+───────────────────────────────────────── */
+#response-notify {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 600;
+  background: var(--c-bg2);
+  border: 1px solid var(--c-blue-dim);
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(102,192,244,0.1);
+  transform: translateX(340px);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: hidden;
+}
+#response-notify.show {
+  transform: translateX(0);
+}
+.rn-head {
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--c-bg2), var(--c-bg3));
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rn-title {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-blue);
+}
+.rn-close {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--c-border);
+  color: var(--c-text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--tr);
+}
+.rn-close:hover { background: var(--c-red); border-color: var(--c-red); color: #fff; }
+.rn-close svg { width: 8px; height: 8px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+.rn-body {
+  padding: 12px 14px;
+}
+.rn-label {
+  font-family: var(--f-mono);
+  font-size: 0.6rem;
+  color: var(--c-text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.rn-message {
+  font-family: var(--f-body);
+  font-size: 0.82rem;
+  color: var(--c-text);
+  line-height: 1.5;
+}
+.rn-date {
+  font-family: var(--f-mono);
+  font-size: 0.58rem;
+  color: var(--c-text3);
+  margin-top: 8px;
+}
+
+/* ─────────────────────────────────────────
+   SUGGESTION BOX
+───────────────────────────────────────── */
+#suggest-btn {
+  position: fixed;
+  bottom: 22px;
+  left: 22px;
+  z-index: 500;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 7px 13px;
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  color: var(--c-text2);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all var(--tr);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#suggest-btn:hover {
+  border-color: var(--c-blue-dim);
+  color: var(--c-blue);
+  background: var(--c-bg2);
+}
+#suggest-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.suggest-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(10,13,18,0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.suggest-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+.suggest-box {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border2);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  transform: scale(0.93) translateY(16px);
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: hidden;
+}
+.suggest-overlay.open .suggest-box {
+  transform: scale(1) translateY(0);
+}
+.suggest-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--c-bg2), var(--c-bg3));
+}
+.suggest-head-title {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.07em;
+  color: var(--c-white);
+  text-transform: uppercase;
+}
+.suggest-head-sub {
+  font-family: var(--f-mono);
+  font-size: 0.6rem;
+  color: var(--c-text3);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+.suggest-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.suggest-type-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.stype-pill {
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text2);
+  cursor: pointer;
+  transition: all var(--tr);
+  outline: none;
+}
+.stype-pill:hover { border-color: var(--c-blue-dim); color: var(--c-blue); }
+.stype-pill.active { background: var(--c-blue-dim); border-color: var(--c-blue-dim); color: #fff; }
+.stype-pill.active-bug { background: var(--c-red); border-color: var(--c-red); color: #fff; }
+.stype-pill.active-game { background: var(--c-green); border-color: var(--c-green); color: #fff; }
+
+#suggest-textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: var(--f-body);
+  font-size: 0.875rem;
+  color: var(--c-text);
+  resize: none;
+  height: 100px;
+  outline: none;
+  transition: border-color var(--tr);
+  box-sizing: border-box;
+}
+#suggest-textarea:focus { border-color: var(--c-blue-dim); }
+#suggest-textarea::placeholder { color: var(--c-text3); }
+
+.suggest-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.suggest-char {
+  font-family: var(--f-mono);
+  font-size: 0.62rem;
+  color: var(--c-text3);
+}
+.suggest-char.warn { color: var(--c-red); }
+#suggest-submit {
+  padding: 2px;
+  background: linear-gradient(to right, #47bfff 5%, #1a44c2 60%);
+  border-radius: 2px;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+#suggest-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+#suggest-submit span {
+  display: block;
+  padding: 7px 18px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-family: var(--f-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+#suggest-submit:hover:not(:disabled) { filter: brightness(1.2); }
+.suggest-success {
+  text-align: center;
+  padding: 24px 18px;
+  font-family: var(--f-mono);
+  font-size: 0.8rem;
+  color: var(--c-green2);
+  letter-spacing: 0.05em;
+  display: none;
+}
+
 :root {
   --c-bg:         #171a21;
   --c-bg2:        #1b2838;
@@ -519,6 +778,58 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div class="modal-links" id="modal-links"></div>
     <div class="modal-body"><div class="modal-grid" id="modal-grid"></div></div>
+  </div>
+</div>
+
+<!-- SUGGESTION BUTTON — only visible after unlock -->
+<button id="suggest-btn" style="display:none;">
+  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  Feedback
+</button>
+
+<!-- SUGGESTION MODAL -->
+<div class="suggest-overlay" id="suggest-overlay">
+  <div class="suggest-box">
+    <div class="suggest-head">
+      <div>
+        <div class="suggest-head-title">Send Feedback</div>
+        <div class="suggest-head-sub">Suggestions, bug reports, game requests — all welcome</div>
+      </div>
+      <button class="modal-close" id="suggest-close" aria-label="Close">
+        <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="suggest-body" id="suggest-body">
+      <div class="suggest-type-row" id="suggest-types">
+        <button class="stype-pill active" data-type="suggestion" data-active="active">💡 Suggestion</button>
+        <button class="stype-pill" data-type="bug" data-active="active-bug">🐛 Bug Report</button>
+        <button class="stype-pill" data-type="game" data-active="active-game">🎮 Request Game</button>
+        <button class="stype-pill" data-type="other" data-active="active">💬 Other</button>
+      </div>
+      <textarea id="suggest-textarea" placeholder="Type your message here…" maxlength="500"></textarea>
+      <div class="suggest-footer">
+        <span class="suggest-char" id="suggest-char">0 / 500</span>
+        <button id="suggest-submit" disabled><span id="suggest-submit-text">Send</span></button>
+      </div>
+    </div>
+    <div class="suggest-success" id="suggest-success">
+      ✓ &nbsp; Sent! Thanks for the feedback.
+    </div>
+  </div>
+</div>
+
+<!-- RESPONSE NOTIFICATION -->
+<div id="response-notify" style="display:none;">
+  <div class="rn-head">
+    <div class="rn-title">💬 Response to your feedback</div>
+    <button class="rn-close" id="rn-close">
+      <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+    </button>
+  </div>
+  <div class="rn-body">
+    <div class="rn-label">revoltz replied</div>
+    <div class="rn-message" id="rn-message"></div>
+    <div class="rn-date" id="rn-date"></div>
   </div>
 </div>
 
@@ -1106,8 +1417,8 @@ function buildCard(acc, animIdx, shouldAnimate) {
 
   var badge = isNew(acc.date) ? '<div class="new-badge">New</div>' : '';
   var ds    = fmtDate(acc.date);
-  var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
-  var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
+  var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" title="Click &amp; complete the short task to unlock" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
+  var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" title="Click &amp; complete the short task to unlock" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
 
   var bannerHtml = isEmpty
     ? '<div class="card-banner"><div class="coming-soon-label">Coming Soon</div></div>'
@@ -1168,9 +1479,11 @@ function openModal(acc) {
     mt.textContent = acc.games.length + ' game' + (acc.games.length !== 1 ? 's' : '') +
       (fmtDate(acc.date) ? '   ·   Added ' + fmtDate(acc.date) : '');
 
-    var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
-    var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
-    ml.innerHTML = (wl || ll) ? wl + ll : '<span class="modal-no-links">No links available</span>';
+    var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" title="Click &amp; complete the short task to unlock" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
+    var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" title="Click &amp; complete the short task to unlock" onclick="trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
+    ml.innerHTML = (wl || ll)
+      ? '<div style="width:100%;margin-bottom:6px;font-family:\'Share Tech Mono\',monospace;font-size:10px;color:#556677;letter-spacing:0.05em;">⚠ Click a link below, complete the short task/ad, then you\'ll get the account</div>' + wl + ll
+      : '<span class="modal-no-links">No links available</span>';
     mg.innerHTML = buildModalGamesHtml(acc.games);
 
     ov.classList.add('open');
@@ -1517,6 +1830,9 @@ async function checkKey() {
     }, true);
 
     SV_UNLOCK_TIME = Date.now();
+    var sb = document.getElementById('suggest-btn');
+    if (sb) sb.style.display = '';
+    checkForResponse();
     notifyDeviceOnUnlock();
     document.getElementById('key-gate').classList.add('hidden');
     showLoader();
@@ -1570,6 +1886,150 @@ async function checkKey() {
 })();
 
 })();
+
+/* ── SUGGESTION BOX ── */
+(function () {
+  var overlay   = document.getElementById('suggest-overlay');
+  var btn       = document.getElementById('suggest-btn');
+  var closeBtn  = document.getElementById('suggest-close');
+  var textarea  = document.getElementById('suggest-textarea');
+  var charEl    = document.getElementById('suggest-char');
+  var submitBtn = document.getElementById('suggest-submit');
+  var submitTxt = document.getElementById('suggest-submit-text');
+  var body      = document.getElementById('suggest-body');
+  var success   = document.getElementById('suggest-success');
+  var types     = document.getElementById('suggest-types');
+  var activeType = 'suggestion';
+
+  var typeEmoji = { suggestion: '💡', bug: '🐛', game: '🎮', other: '💬' };
+  var typeColor = { suggestion: 0x66c0f4, bug: 0xc94f4f, game: 0x5ba32b, other: 0x8f98a0 };
+  var typeLabel = { suggestion: 'Suggestion', bug: 'Bug Report', game: 'Game Request', other: 'Other' };
+
+  /* type pill selection */
+  if (types) types.addEventListener('click', function (e) {
+    var p = e.target.closest('.stype-pill'); if (!p) return;
+    types.querySelectorAll('.stype-pill').forEach(function (x) {
+      x.classList.remove('active', 'active-bug', 'active-game');
+    });
+    activeType = p.dataset.type;
+    p.classList.add(p.dataset.active);
+    if (textarea) textarea.placeholder = {
+      suggestion: 'What would you like to see added or changed?',
+      bug:        'Describe the bug — what happened and when?',
+      game:       'Which game / account would you like added?',
+      other:      'Type your message here…'
+    }[activeType] || 'Type your message here…';
+  });
+
+  /* char counter */
+  if (textarea) textarea.addEventListener('input', function () {
+    var len = textarea.value.trim().length;
+    charEl.textContent = len + ' / 500';
+    charEl.classList.toggle('warn', len > 450);
+    submitBtn.disabled = len === 0;
+  });
+
+  function openSuggest() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (textarea) textarea.focus();
+  }
+  function closeSuggest() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn)      btn.addEventListener('click', openSuggest);
+  if (closeBtn) closeBtn.addEventListener('click', closeSuggest);
+  if (overlay)  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeSuggest(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSuggest(); });
+
+  /* submit */
+  if (submitBtn) submitBtn.addEventListener('click', function () {
+    var msg = textarea.value.trim();
+    if (!msg) return;
+
+    submitBtn.disabled = true;
+    submitTxt.textContent = 'Sending…';
+
+    var discordBody = JSON.stringify({
+      payload: {
+        embeds: [{
+          title: typeEmoji[activeType] + ' ' + typeLabel[activeType],
+          color: typeColor[activeType],
+          description: msg,
+          fields: [
+            { name: 'User',   value: '`' + SV_UID + '`', inline: true },
+            { name: 'Device', value: SV_DEVICE,           inline: true }
+          ],
+          footer: { text: 'Steam Vault Feedback' },
+          timestamp: new Date().toISOString()
+        }]
+      },
+      suggestions: true
+    });
+
+    fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: discordBody
+    }).finally(function () {
+      body.style.display = 'none';
+      success.style.display = 'block';
+      setTimeout(function () {
+        closeSuggest();
+        setTimeout(function () {
+          body.style.display = '';
+          success.style.display = 'none';
+          textarea.value = '';
+          charEl.textContent = '0 / 500';
+          submitBtn.disabled = true;
+          submitTxt.textContent = 'Send';
+        }, 400);
+      }, 2000);
+    });
+  });
+})();
+
+/* ── RESPONSE CHECKER ── */
+async function checkForResponse() {
+  try {
+    var res = await fetch('https://raw.githubusercontent.com/lusheeesh/rblx/main/svresponses.json?t=' + Date.now());
+    if (!res.ok) return;
+    var data = await res.json();
+    if (!Array.isArray(data)) return;
+
+    /* find response for this user */
+    var match = data.find(function (r) { return r.uid === SV_UID; });
+    if (!match) return;
+
+    /* check if user already dismissed this response */
+    var seenKey = 'sv_seen_' + SV_UID;
+    var seen    = localStorage.getItem(seenKey);
+    if (seen === match.response) return; /* same message, already dismissed */
+
+    /* show it */
+    var notify  = document.getElementById('response-notify');
+    var msgEl   = document.getElementById('rn-message');
+    var dateEl  = document.getElementById('rn-date');
+    var closeEl = document.getElementById('rn-close');
+
+    if (!notify || !msgEl) return;
+    msgEl.textContent  = match.response;
+    if (dateEl) dateEl.textContent = match.date || '';
+    notify.style.display = '';
+    setTimeout(function () { notify.classList.add('show'); }, 50);
+
+    /* close button — saves to localStorage so it won't show again */
+    if (closeEl) closeEl.addEventListener('click', function () {
+      notify.classList.remove('show');
+      localStorage.setItem(seenKey, match.response);
+      setTimeout(function () { notify.style.display = 'none'; }, 400);
+    });
+
+  } catch (e) { /* silent */ }
+}
+
 </script>
 
 </body>
