@@ -301,6 +301,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .acc-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-hover);border-color:var(--c-border2);}
 .acc-card:focus,.acc-card:focus-within,.acc-card:focus-visible{outline:none !important;box-shadow:var(--shadow-card) !important;}
 
+.card-coming-soon .card-banner {
+  background: linear-gradient(135deg, #0d1520, #0c1825);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.coming-soon-label {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.25em;
+  color: var(--c-text3);
+  text-transform: uppercase;
+  border: 1px solid var(--c-border);
+  padding: 5px 14px;
+  border-radius: 3px;
+}
+
 .card-banner{position:relative;height:92px;overflow:hidden;background:linear-gradient(135deg,#0d1520,#0c1825);flex-shrink:0;}
 .card-banner-img{width:100%;height:100%;object-fit:cover;opacity:0.48;transition:opacity 0.3s ease,transform 0.4s ease;filter:saturate(0.55) brightness(0.8);}
 .acc-card:hover .card-banner-img{opacity:0.72;transform:scale(1.06);filter:saturate(0.85) brightness(0.92);}
@@ -397,11 +415,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <button id="key-submit"><span id="key-submit-text">Unlock Access</span></button>
       <div class="key-error" id="key-error"></div>
-      <div class="key-last-updated" id="key-last-updated" style="display:none;">
-        Key last updated: <span id="key-updated-val"></span>
-      </div>
       <div class="key-last-updated" id="site-last-updated" style="display:none;">
         Site last updated: <span id="site-updated-val"></span>
+      </div>
+      <div class="key-last-updated" id="key-last-updated" style="display:none;">
+        Key last updated: <span id="key-updated-val"></span>
       </div>
       <div class="key-sub">The access key is hidden in the latest video.</div>
       <div class="social-links">
@@ -870,7 +888,8 @@ function patchCards() {
 function buildCard(acc, animIdx, shouldAnimate) {
   if (!acc) return null;
   var el = document.createElement('div');
-  el.className    = 'acc-card' + (shouldAnimate ? ' animate-in' : '');
+  var isEmpty = acc.games.length === 0;
+  el.className    = 'acc-card' + (shouldAnimate ? ' animate-in' : '') + (isEmpty ? ' card-coming-soon' : '');
   if (shouldAnimate) el.style.animationDelay = Math.min(animIdx * 0.05, 0.4) + 's';
   el.dataset.accid = String(acc.id);
   el.setAttribute('tabindex', '-1');
@@ -889,25 +908,25 @@ function buildCard(acc, animIdx, shouldAnimate) {
   var wl = acc.workink     ? '<a class="btn-link btn-work"  href="' + esc(acc.workink)     + '" target="_blank" rel="noopener" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'workink\')">Work.ink</a>'    : '';
   var ll = acc.linkvertise ? '<a class="btn-link btn-lvert" href="' + esc(acc.linkvertise) + '" target="_blank" rel="noopener" onclick="event.stopPropagation();trackAdClick(\'' + esc(acc.name) + '\',' + acc.id + ',\'linkvertise\')">Linkvertise</a>' : '';
 
+  var bannerHtml = isEmpty
+    ? '<div class="card-banner"><div class="coming-soon-label">Coming Soon</div></div>'
+    : '<div class="card-banner"><img class="card-banner-img" src="' + esc(bSrc) + '" alt="" loading="lazy" onerror="' + ONERR_PH + '"><div class="card-banner-fade"></div>' + badge + '</div>';
+
   el.innerHTML =
-    '<div class="card-banner">' +
-      '<img class="card-banner-img" src="' + esc(bSrc) + '" alt="" loading="lazy" onerror="' + ONERR_PH + '">' +
-      '<div class="card-banner-fade"></div>' + badge +
-    '</div>' +
+    bannerHtml +
     '<div class="card-body">' +
       '<div class="card-nameline">' +
         '<div class="card-name">' + esc(acc.name) + '</div>' +
         (ds ? '<div class="card-date">' + esc(ds) + '</div>' : '') +
       '</div>' +
-      '<div class="icon-stack">' + buildStackHtml(acc.games) + '</div>' +
-      '<div class="card-tags">'  + buildTagsHtml(acc.games)  + '</div>' +
+      (isEmpty ? '' : '<div class="icon-stack">' + buildStackHtml(acc.games) + '</div>') +
+      (isEmpty ? '' : '<div class="card-tags">'  + buildTagsHtml(acc.games)  + '</div>') +
       '<div class="card-footer">' +
         '<div class="card-links">' + wl + ll + '</div>' +
-        '<div class="game-counter"><strong>' + acc.games.length + '</strong>&nbsp;game' + (acc.games.length !== 1 ? 's' : '') + '</div>' +
+        '<div class="game-counter">' + (isEmpty ? '<span style="color:var(--c-text3)">No games yet</span>' : '<strong>' + acc.games.length + '</strong>&nbsp;game' + (acc.games.length !== 1 ? 's' : '')) + '</div>' +
       '</div>' +
     '</div>';
 
-  /* FIX: only 'click' handler — removed the old duplicate mousedown listener */
   el.addEventListener('click', function (e) {
     if (e.target.closest('a')) return;
     openModal(acc);
