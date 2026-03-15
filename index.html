@@ -532,6 +532,44 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div id="toasts"></div>
 
 <script>
+  // ── Disable right-click ──────────────────────────────────────
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // ── Block keyboard shortcuts ─────────────────────────────────
+  document.addEventListener('keydown', e => {
+    const blocked =
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I', 'J', 'C', 'K'].includes(e.key.toUpperCase())) ||
+      (e.ctrlKey && ['U', 'S'].includes(e.key.toUpperCase())) ||
+      (e.metaKey && e.altKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())); // Mac
+
+    if (blocked) e.preventDefault();
+  });
+
+  // ── Detect DevTools open → reload page ───────────────────────
+  (function detectDevTools() {
+    const threshold = 150;
+
+    function check() {
+      const widthDiff  = window.outerWidth  - window.innerWidth;
+      const heightDiff = window.outerHeight - window.innerHeight;
+
+      if (widthDiff > threshold || heightDiff > threshold) {
+        // DevTools likely open — reload to clear it
+        document.body.innerHTML = '';
+        window.location.reload();
+      }
+    }
+
+    setInterval(check, 800);
+  })();
+
+  // ── Disable text selection (optional, stops easy copy) ───────
+  document.addEventListener('selectstart', e => e.preventDefault());
+  document.addEventListener('dragstart',   e => e.preventDefault());
+</script>
+
+<script>
 /* ── PERSISTENT USER ID ── */
 function getUserId() {
   try {
