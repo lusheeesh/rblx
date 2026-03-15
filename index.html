@@ -415,17 +415,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <button id="key-submit"><span id="key-submit-text">Unlock Access</span></button>
       <div class="key-error" id="key-error"></div>
-<div class="key-last-updated" id="site-last-updated" style="display:none;">
-  Site last updated: <span id="site-updated-val"></span>
-  <div id="site-commit-msg" style="
-    color: #4f5a66;
-    margin-top: 4px;
-    font-size: 10px;
-    font-family: 'Share Tech Mono', monospace;
-    letter-spacing: 0.03em;
-    font-style: italic;
-  "></div>
-</div>
+      <div class="key-last-updated" id="site-last-updated" style="display:none;">
+        Site last updated: <span id="site-updated-val"></span>
+        <div id="site-commit-msg" style="color:#4f5a66;margin-top:4px;font-size:10px;font-family:'Share Tech Mono',monospace;letter-spacing:0.03em;font-style:italic;"></div>
+      </div>
       <div class="key-last-updated" id="key-last-updated" style="display:none;">
         Key last updated: <span id="key-updated-val"></span>
       </div>
@@ -531,28 +524,38 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <div id="toasts"></div>
 
+<!-- FIX: PostHog loads FIRST so getSessionUrl() works when tracking script runs -->
 <script>
-  // ── Disable right-click ──────────────────────────────────────
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_S2P1r3tLBUYh1T0z1F5a4ffWgKyhUJL7i1R0Shjp8br', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-01-30',
+        session_recording: {
+            recordCrossOriginIframes: false,
+        },
+        enable_recording_console_log: true,
+    })
+</script>
+
+<!-- Security: block devtools shortcuts and right click. selectstart removed — breaks mobile paste -->
+<script>
   document.addEventListener('contextmenu', e => e.preventDefault());
 
-  // ── Block keyboard shortcuts ─────────────────────────────────
   document.addEventListener('keydown', e => {
     const blocked =
       e.key === 'F12' ||
       (e.ctrlKey && e.shiftKey && ['I', 'J', 'C', 'K'].includes(e.key.toUpperCase())) ||
       (e.ctrlKey && ['U', 'S'].includes(e.key.toUpperCase())) ||
-      (e.metaKey && e.altKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())); // Mac
-
+      (e.metaKey && e.altKey && ['I', 'J', 'C'].includes(e.key.toUpperCase()));
     if (blocked) e.preventDefault();
   });
 
-  // ── Disable text selection (optional, stops easy copy) ───────
-  document.addEventListener('selectstart', e => e.preventDefault());
-  document.addEventListener('dragstart',   e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
 </script>
 
+<!-- Tracking + app logic — single clean block, no duplicates -->
 <script>
-/* ── PERSISTENT USER ID ── */
+/* ── USER ID ── */
 function getUserId() {
   try {
     var id = localStorage.getItem('sv_uid');
@@ -565,7 +568,46 @@ function getUserId() {
 }
 var SV_UID = getUserId();
 
-/* ── SEND TO DISCORD ── */
+/* ── DEVICE ── */
+var SV_DEVICE = window.innerWidth <= 768 ? '📱 Mobile' : '🖥️ Desktop';
+
+/* ── TIMERS — FIX: SV_LAST_ACTIVITY declared here ── */
+var SV_PAGE_START    = Date.now();
+var SV_UNLOCK_TIME   = null;
+var SV_LAST_ACTIVITY = Date.now();
+var SV_IDLE_TIMER    = null;
+var SV_IDLE_FIRED    = false;
+var IDLE_THRESHOLD   = 3 * 60 * 1000;
+
+function resetIdleTimer() {
+  SV_LAST_ACTIVITY = Date.now();
+  SV_IDLE_FIRED = false;
+  clearTimeout(SV_IDLE_TIMER);
+  SV_IDLE_TIMER = setTimeout(function () {
+    if (!SV_IDLE_FIRED) {
+      SV_IDLE_FIRED = true;
+      sendDiscord({
+        embeds: [{
+          title: '💤 User Went Idle',
+          color: 0x556677,
+          fields: [
+            { name: 'User',       value: SV_UID,    inline: true },
+            { name: 'Device',     value: SV_DEVICE, inline: true },
+            { name: 'Idle after', value: '3 min',   inline: true }
+          ],
+          footer: { text: 'Steam Vault Stats' },
+          timestamp: new Date().toISOString()
+        }]
+      }, true);
+    }
+  }, IDLE_THRESHOLD);
+}
+
+['click','keydown','scroll','mousemove','touchstart'].forEach(function (ev) {
+  document.addEventListener(ev, resetIdleTimer, { passive: true });
+});
+
+/* ── SEND DISCORD ── */
 function sendDiscord(payload, stats) {
   var body = JSON.stringify({ payload: payload, stats: !!stats });
   try {
@@ -579,26 +621,50 @@ function getSessionUrl() {
   try { return posthog.get_session_replay_url({ withTimestamp: true }) || null; } catch (e) { return null; }
 }
 
+function fmtDuration(ms) {
+  var s = Math.floor(ms / 1000);
+  if (s < 60)   return s + 's';
+  if (s < 3600) return Math.floor(s / 60) + 'm ' + (s % 60) + 's';
+  return Math.floor(s / 3600) + 'h ' + Math.floor((s % 3600) / 60) + 'm';
+}
+
+/* ── DEVICE + SCREEN NOTIFICATION ON UNLOCK ── */
+function notifyDeviceOnUnlock() {
+  sendDiscord({
+    embeds: [{
+      title: '🔓 Vault Unlocked',
+      color: 0x5ba32b,
+      fields: [
+        { name: 'User',   value: SV_UID,                                       inline: true },
+        { name: 'Device', value: SV_DEVICE,                                    inline: true },
+        { name: 'Screen', value: window.innerWidth + 'x' + window.innerHeight, inline: true }
+      ],
+      footer: { text: 'Steam Vault Stats' },
+      timestamp: new Date().toISOString()
+    }]
+  }, true);
+}
+
 /* ── AD CLICK ── */
 function trackAdClick(accName, accId, method) {
   try { posthog.capture('ad_click', { vault_name: accName || ('Vault #' + accId), ad_method: method, user_id: SV_UID }); } catch (e) {}
+  resetIdleTimer();
 
-  /* Main channel */
   sendDiscord({
     embeds: [{
       title: '🔗 Ad Click',
       color: 0x66c0f4,
       fields: [
-        { name: 'User',   value: SV_UID,                          inline: true },
-        { name: 'Vault',  value: accName || ('Vault #' + accId),  inline: true },
-        { name: 'Method', value: method,                          inline: true }
+        { name: 'User',   value: SV_UID,                         inline: true },
+        { name: 'Vault',  value: accName || ('Vault #' + accId), inline: true },
+        { name: 'Method', value: method,                         inline: true },
+        { name: 'Device', value: SV_DEVICE,                      inline: true }
       ],
       footer: { text: 'Steam Vault' },
       timestamp: new Date().toISOString()
     }]
   }, false);
 
-  /* Stats channel */
   sendDiscord({
     embeds: [{
       title: '📊 Ad Click Stat',
@@ -606,7 +672,8 @@ function trackAdClick(accName, accId, method) {
       description:
         '**User:** `' + SV_UID + '`\n' +
         '**Vault:** ' + (accName || ('Vault #' + accId)) + '\n' +
-        '**Method:** `' + method + '`',
+        '**Method:** `' + method + '`\n' +
+        '**Device:** ' + SV_DEVICE,
       footer: { text: 'Steam Vault Stats' },
       timestamp: new Date().toISOString()
     }]
@@ -616,15 +683,16 @@ function trackAdClick(accName, accId, method) {
 /* ── VAULT OPEN ── */
 function notifyVaultOpen(accName, accId) {
   var sessionUrl = getSessionUrl();
+  resetIdleTimer();
 
-  /* Main channel */
   sendDiscord({
     embeds: [{
       title: '👁️ Vault Opened',
       color: 0xc8a951,
       fields: [
-        { name: 'User',  value: SV_UID,                         inline: true },
-        { name: 'Vault', value: accName || ('Vault #' + accId), inline: true },
+        { name: 'User',   value: SV_UID,                         inline: true },
+        { name: 'Vault',  value: accName || ('Vault #' + accId), inline: true },
+        { name: 'Device', value: SV_DEVICE,                      inline: true },
         sessionUrl ? { name: 'Session', value: '[Watch](' + sessionUrl + ')', inline: true } : null
       ].filter(Boolean),
       footer: { text: 'Steam Vault' },
@@ -632,14 +700,14 @@ function notifyVaultOpen(accName, accId) {
     }]
   }, false);
 
-  /* Stats channel */
   sendDiscord({
     embeds: [{
       title: '📊 Vault Open Stat',
       color: 0xc8a951,
       description:
         '**User:** `' + SV_UID + '`\n' +
-        '**Vault:** ' + (accName || ('Vault #' + accId)),
+        '**Vault:** ' + (accName || ('Vault #' + accId)) + '\n' +
+        '**Device:** ' + SV_DEVICE,
       footer: { text: 'Steam Vault Stats' },
       timestamp: new Date().toISOString()
     }]
@@ -649,16 +717,22 @@ function notifyVaultOpen(accName, accId) {
 /* ── SESSION END ── */
 window.addEventListener('visibilitychange', function () {
   if (document.visibilityState !== 'hidden') return;
-  var sessionUrl = getSessionUrl();
-  if (!sessionUrl) return;
+  clearTimeout(SV_IDLE_TIMER);
+  var sessionUrl   = getSessionUrl();
+  var totalTime    = fmtDuration(Date.now() - SV_PAGE_START);
+  var unlockedTime = SV_UNLOCK_TIME ? fmtDuration(Date.now() - SV_UNLOCK_TIME) : 'Never unlocked';
+
   sendDiscord({
     embeds: [{
       title: '📹 Session Ended',
       color: 0x5ba32b,
       fields: [
-        { name: 'User', value: SV_UID, inline: true },
-        { name: 'Recording', value: '[Watch](' + sessionUrl + ')', inline: true }
-      ],
+        { name: 'User',          value: SV_UID,       inline: true },
+        { name: 'Device',        value: SV_DEVICE,    inline: true },
+        { name: 'Total time',    value: totalTime,    inline: true },
+        { name: 'Time in vault', value: unlockedTime, inline: true },
+        sessionUrl ? { name: 'Recording', value: '[Watch](' + sessionUrl + ')', inline: true } : null
+      ].filter(Boolean),
       footer: { text: 'Steam Vault' },
       timestamp: new Date().toISOString()
     }]
@@ -677,23 +751,21 @@ var ACCOUNTS_URL = "https://raw.githubusercontent.com/lusheeesh/rblx/main/svgame
 var KEY_URL      = "https://raw.githubusercontent.com/lusheeesh/rblx/refs/heads/main/svkey.txt";
 
 var CACHE_KEY   = 'sv_v10';
-var CONCURRENCY = 8;    // ↑ was 4
-var BATCH_DELAY = 60;   // ↓ was 350ms — huge source of artificial slowness
-var TIMEOUT_MS  = 7000; // per-proxy timeout (proxies now race in parallel)
+var CONCURRENCY = 8;
+var BATCH_DELAY = 60;
+var TIMEOUT_MS  = 7000;
 
 /* ══════════════════════════════════════════
    STATE
 ══════════════════════════════════════════ */
 var cache      = {};
 var accounts   = [];
-var inFlight   = {}; // FIX: dedup — same appid never fetches twice simultaneously
+var inFlight   = {};
 var state      = { filter:'all', sort:'newest', search:'' };
 var firstRender= true;
 
-/* Background boot promises — pre-loading starts immediately on page open,
-   before the user even finishes typing their key */
-var _acctPromise  = null; // resolves when accounts are loaded & normalised
-var _namesPromise = null; // resolves when all game names are pre-fetched
+var _acctPromise  = null;
+var _namesPromise = null;
 var _bgDone       = false;
 
 /* ══════════════════════════════════════════
@@ -774,7 +846,7 @@ function fetchWithTimeout(url, ms) {
   });
 }
 
-/* FIX: Promise.any polyfill — first fulfillment wins, ignores rejections */
+/* Promise.any polyfill — first fulfillment wins */
 function promiseAny(promises) {
   if (typeof Promise.any === 'function') return Promise.any(promises);
   return new Promise(function (resolve, reject) {
@@ -791,16 +863,14 @@ function promiseAny(promises) {
 
 /* ══════════════════════════════════════════
    FETCH GAME — RACING PROXIES IN PARALLEL
-   FIX: All proxies start simultaneously — fastest one wins.
-        Old code tried them one-by-one (up to 40s total per failed game).
-        New code: worst case = one proxy timeout = 7s, not 28s.
-   FIX: inFlight map prevents duplicate HTTP calls for the same appid.
+   FIX: iconImg now uses d.header_image (same as banner) so icons
+        don't 404 on games with non-standard CDN paths.
 ══════════════════════════════════════════ */
 function fetchGame(appid) {
   var id  = parseInt(appid, 10);
   if (!id || isNaN(id) || id <= 0) return Promise.resolve(null);
   if (cacheHasReal(id))            return Promise.resolve(cacheGet(id));
-  if (inFlight[id])                return inFlight[id]; // dedup!
+  if (inFlight[id])                return inFlight[id];
 
   var STEAM = 'https://store.steampowered.com/api/appdetails/?appids=' + id;
   var enc   = encodeURIComponent(STEAM);
@@ -812,7 +882,6 @@ function fetchGame(appid) {
     return gd.data;
   }
 
-  /* All 4 proxies race simultaneously — first valid response wins */
   var races = [
     fetchWithTimeout('https://api.allorigins.win/raw?url=' + enc, TIMEOUT_MS)
       .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -838,7 +907,7 @@ function fetchGame(appid) {
         id:        id,
         name:      d.name.trim(),
         headerImg: d.header_image || hdr(id),
-        iconImg:   d.header_image || hdr(id)
+        iconImg:   d.header_image || hdr(id)  /* FIX: was hdr(id) only — caused 404 on some games */
       };
       cacheSet(id, entry);
       saveCache();
@@ -846,7 +915,7 @@ function fetchGame(appid) {
     })
     .catch(function () { return null; })
     .then(function (result) {
-      delete inFlight[id]; // always cleanup
+      delete inFlight[id];
       return result;
     });
 
@@ -1111,8 +1180,6 @@ function openModal(acc) {
 
     var missing = acc.games.filter(function (id) { return !cacheHasReal(id); });
     if (missing.length > 0) {
-      /* FIX: fetchGame already deduplicates — no redundant requests even if
-         called for games being fetched by the background pipeline */
       Promise.all(missing.map(fetchGame)).then(function () {
         if (ov.classList.contains('open')) mg.innerHTML = buildModalGamesHtml(acc.games);
         patchCards();
@@ -1147,8 +1214,6 @@ function updateCacheInfo() {
 
 /* ══════════════════════════════════════════
    FETCH PIPELINE
-   FIX: BATCH_DELAY now 60ms (was 350ms). With 20 games at concurrency 8,
-        that's 3 batches × 60ms = 180ms overhead vs 1750ms before.
 ══════════════════════════════════════════ */
 function fetchAll(onProgress) {
   var all     = unique(accounts.reduce(function (arr, a) { return arr.concat(a.games); }, []));
@@ -1197,12 +1262,54 @@ function bindEvents() {
     var t;
     si.addEventListener('input', function () {
       clearTimeout(t);
-      t = setTimeout(function () { firstRender = false; state.search = si.value || ''; render(); updateStats(); }, 160);
+      t = setTimeout(function () {
+        firstRender = false;
+        state.search = si.value || '';
+        render();
+        updateStats();
+        resetIdleTimer();
+
+        var q = (si.value || '').trim();
+        if (!q) return;
+
+        var results = getVisible();
+
+        if (results.length === 0) {
+          sendDiscord({
+            embeds: [{
+              title: '🔍 No Results Search',
+              color: 0xc94f4f,
+              description:
+                '**User:** `' + SV_UID + '`\n' +
+                '**Searched:** `' + q + '`\n' +
+                '**Device:** ' + SV_DEVICE,
+              footer: { text: 'Steam Vault Stats' },
+              timestamp: new Date().toISOString()
+            }]
+          }, true);
+        } else {
+          sendDiscord({
+            embeds: [{
+              title: '🔎 Search Query',
+              color: 0x8f98a0,
+              description:
+                '**User:** `' + SV_UID + '`\n' +
+                '**Query:** `' + q + '`\n' +
+                '**Results:** ' + results.length + '\n' +
+                '**Device:** ' + SV_DEVICE,
+              footer: { text: 'Steam Vault Stats' },
+              timestamp: new Date().toISOString()
+            }]
+          }, true);
+        }
+      }, 800);
     });
   }
 
   var ss = document.getElementById('sort-select');
-  if (ss) ss.addEventListener('change', function () { firstRender = false; state.sort = ss.value || 'newest'; render(); });
+  if (ss) ss.addEventListener('change', function () {
+    firstRender = false; state.sort = ss.value || 'newest'; render();
+  });
 
   var fg = document.getElementById('filter-group');
   if (fg) fg.addEventListener('click', function (e) {
@@ -1221,12 +1328,6 @@ function bindEvents() {
 
 /* ══════════════════════════════════════════
    BACKGROUND PRE-LOADER
-   Starts immediately when page opens — before the user finishes entering their
-   key. By the time they hit "Unlock", accounts and game names are already ready.
-
-   FIX (critical): The original code called loadAccounts() as a fire-and-forget
-   async function, then immediately called normalise(ACCOUNTS) in initApp()
-   which almost always ran before the fetch completed → empty accounts array.
 ══════════════════════════════════════════ */
 function startBackgroundLoad() {
   _acctPromise = fetchWithTimeout(ACCOUNTS_URL, 12000)
@@ -1237,8 +1338,6 @@ function startBackgroundLoad() {
     .then(function (data) {
       loadCache();
       accounts = normalise(Array.isArray(data) ? data : []);
-      /* Start pre-fetching game names silently in the background.
-         inFlight dedup means initApp's fetchAll call won't duplicate these. */
       if (accounts.length > 0) {
         _namesPromise = fetchAll(null).then(function () { _bgDone = true; });
       } else {
@@ -1262,7 +1361,6 @@ function initApp() {
     bindEvents();
     setLoaderBar(20, 'Loading accounts…');
 
-    /* Wait for background account load to complete (usually already done) */
     var ready = _acctPromise || Promise.resolve();
 
     ready.then(function () {
@@ -1279,10 +1377,8 @@ function initApp() {
         updateStats(); firstRender = true; render(); updateCacheInfo();
 
         if (_bgDone) {
-          /* Background finished everything — just render and go */
           setLoaderBar(100, 'Ready'); setTimeout(hideLoader, 300);
         } else {
-          /* Background still running — attach progress display to it */
           setLoaderBar(60, 'Fetching game data…');
           var p = _namesPromise || fetchAll(function (pct, label) {
             setLoaderBar(60 + (pct * 37), label);
@@ -1329,10 +1425,10 @@ async function getDailyKey() {
 
 function timeAgo(date) {
   var seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60)    return 'just now';
-  if (seconds < 3600)  return Math.floor(seconds / 60) + ' minutes ago';
-  if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
-  if (seconds < 604800)return Math.floor(seconds / 86400) + ' days ago';
+  if (seconds < 60)     return 'just now';
+  if (seconds < 3600)   return Math.floor(seconds / 60) + ' minutes ago';
+  if (seconds < 86400)  return Math.floor(seconds / 3600) + ' hours ago';
+  if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
   return date.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 
@@ -1373,7 +1469,7 @@ async function loadKeyMeta() {
       if (rowEl) rowEl.style.display = '';
     }
   } catch (e) { /* silent */ }
-  }
+}
 
 function setKeyError(msg) { var el = document.getElementById('key-error'); if (el) el.textContent = msg || ''; }
 function setKeySubmitState(loading) {
@@ -1420,10 +1516,11 @@ async function checkKey() {
       }]
     }, true);
 
+    SV_UNLOCK_TIME = Date.now();
+    notifyDeviceOnUnlock();
     document.getElementById('key-gate').classList.add('hidden');
     showLoader();
     setLoaderBar(10, 'Initializing…');
-    /* Small rAF delay so the loader transition is visible before JS kicks in */
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         setLoaderBar(25, 'Loading vault…');
@@ -1455,19 +1552,16 @@ async function checkKey() {
     }
   }
 }
+
 /* ══════════════════════════════════════════
    BOOT — runs immediately on page load
-   Background loading starts NOW, before the user enters the key.
 ══════════════════════════════════════════ */
 (function boot() {
-  /* Start pre-loading accounts + game names in background immediately */
   startBackgroundLoad();
 
-  /* Load metadatas for display */
   loadKeyMeta();
   loadSiteMeta();
 
-  /* Key gate handlers */
   document.getElementById('key-submit').addEventListener('click', checkKey);
   document.getElementById('key-input').addEventListener('keyup', function (e) {
     if (e.key === 'Enter') checkKey();
@@ -1476,18 +1570,6 @@ async function checkKey() {
 })();
 
 })();
-</script>
-
-<script>
-    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-    posthog.init('phc_S2P1r3tLBUYh1T0z1F5a4ffWgKyhUJL7i1R0Shjp8br', {
-        api_host: 'https://us.i.posthog.com',
-        defaults: '2026-01-30',
-        session_recording: {
-            recordCrossOriginIframes: false,
-        },
-        enable_recording_console_log: true,
-    })
 </script>
 
 </body>
