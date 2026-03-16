@@ -8,191 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 
-   
-/* ─────────────────────────────────────────
-   HOW TO USE OVERLAY
-───────────────────────────────────────── */
-#howto-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 8000;
-  background: rgba(10, 13, 18, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-#howto-overlay.open {
-  opacity: 1;
-  visibility: visible;
-}
-.howto-box {
-  background: var(--c-bg2);
-  border: 1px solid var(--c-border2);
-  border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(102,192,244,0.08);
-  transform: scale(0.93) translateY(20px);
-  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-  overflow: hidden;
-}
-#howto-overlay.open .howto-box {
-  transform: scale(1) translateY(0);
-}
-.howto-head {
-  padding: 18px 20px 14px;
-  background: linear-gradient(135deg, var(--c-bg2), var(--c-bg3));
-  border-bottom: 1px solid var(--c-border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.howto-head-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(102,192,244,0.15), rgba(102,192,244,0.05));
-  border: 1px solid rgba(102,192,244,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 1.1rem;
-}
-.howto-head-text {}
-.howto-head-title {
-  font-family: var(--f-display);
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--c-white);
-  line-height: 1;
-}
-.howto-head-sub {
-  font-family: var(--f-mono);
-  font-size: 0.6rem;
-  color: var(--c-text3);
-  margin-top: 4px;
-  letter-spacing: 0.05em;
-}
-.howto-steps {
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.howto-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 13px;
-}
-.howto-step-num {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: rgba(102,192,244,0.1);
-  border: 1px solid rgba(102,192,244,0.22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: 0.78rem;
-  color: var(--c-blue);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.howto-step-body {}
-.howto-step-title {
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
-  color: var(--c-white);
-  line-height: 1.2;
-}
-.howto-step-desc {
-  font-family: var(--f-body);
-  font-size: 0.8rem;
-  color: var(--c-text2);
-  margin-top: 3px;
-  line-height: 1.55;
-}
-.howto-step-desc span {
-  color: var(--c-blue);
-  font-weight: 600;
-}
-.howto-divider {
-  height: 1px;
-  background: var(--c-border);
-  margin: 0 20px;
-}
-.howto-footer {
-  padding: 14px 20px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.howto-dont-show {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  cursor: pointer;
-  user-select: none;
-}
-.howto-dont-show input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  accent-color: var(--c-blue);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.howto-dont-show-label {
-  font-family: var(--f-mono);
-  font-size: 0.65rem;
-  color: var(--c-text3);
-  letter-spacing: 0.04em;
-  cursor: pointer;
-}
-#howto-got-it {
-  padding: 2px;
-  background: linear-gradient(to right, #47bfff 5%, #1a44c2 60%);
-  border-radius: 3px;
-  border: none;
-  cursor: pointer;
-  transition: filter 0.2s ease;
-  flex-shrink: 0;
-}
-#howto-got-it:hover { filter: brightness(1.2); }
-#howto-got-it span {
-  display: block;
-  padding: 8px 22px;
-  color: #fff;
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: 0.82rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-@media (max-width: 480px) {
-  .howto-box { border-radius: 10px; }
-  .howto-head { padding: 14px 16px 12px; }
-  .howto-steps { padding: 14px 16px; gap: 11px; }
-  .howto-divider { margin: 0 16px; }
-  .howto-footer { padding: 12px 16px 16px; }
-  .howto-step-desc { font-size: 0.78rem; }
-}
-
 /* ─────────────────────────────────────────
    RESPONSE NOTIFICATION
 ───────────────────────────────────────── */
@@ -269,70 +84,54 @@
 }
 
 /* ─────────────────────────────────────────
-   FEEDBACK BUTTON
+   SUGGESTION BOX
 ───────────────────────────────────────── */
 #suggest-btn {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  left: auto;
+  bottom: 22px;
+  left: 22px;
   z-index: 500;
-  background: linear-gradient(135deg, rgba(102,192,244,0.12), rgba(102,192,244,0.06));
-  border: 1px solid rgba(102,192,244,0.35);
-  border-radius: 50px;
-  padding: 10px 18px;
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: 0.78rem;
-  color: var(--c-blue);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 7px 13px;
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  color: var(--c-text2);
+  letter-spacing: 0.08em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--tr);
   display: flex;
   align-items: center;
-  gap: 8px;
-  outline: none !important;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 20px rgba(102,192,244,0.15), 0 0 0 0 rgba(102,192,244,0.4);
-  animation: suggestPulse 2.8s ease-in-out infinite;
-  user-select: none;
+  gap: 6px;
+  outline: none !important;          /* ← add this */
+  -webkit-tap-highlight-color: transparent;  /* ← add this */
 }
 #suggest-btn:hover {
-  background: var(--c-blue-dim);
   border-color: var(--c-blue-dim);
-  color: #fff;
-  box-shadow: 0 6px 24px rgba(102,192,244,0.35);
-  animation: none;
-  transform: translateY(-2px);
-}
-#suggest-btn:active {
-  transform: translateY(0px);
+  color: var(--c-blue);
+  background: var(--c-bg2);
 }
 #suggest-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   stroke: currentColor;
   fill: none;
   stroke-width: 2;
   stroke-linecap: round;
-  flex-shrink: 0;
 }
 
-/* ─────────────────────────────────────────
-   FEEDBACK OVERLAY
-───────────────────────────────────────── */
 .suggest-overlay {
   position: fixed;
   inset: 0;
   z-index: 900;
-  background: rgba(10,13,18,0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(10,13,18,0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 20px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0.25s ease;
@@ -341,55 +140,27 @@
   opacity: 1;
   visibility: visible;
 }
-
-/* ─────────────────────────────────────────
-   FEEDBACK BOX
-───────────────────────────────────────── */
 .suggest-box {
   background: var(--c-bg2);
   border: 1px solid var(--c-border2);
-  border-radius: 12px;
+  border-radius: 10px;
   width: 100%;
-  max-width: 480px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(102,192,244,0.06);
-  transform: scale(0.93) translateY(18px);
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 460px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  transform: scale(0.93) translateY(16px);
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
   overflow: hidden;
-  /* allow scroll on very small screens */
-  max-height: calc(100vh - 32px);
-  display: flex;
-  flex-direction: column;
 }
 .suggest-overlay.open .suggest-box {
   transform: scale(1) translateY(0);
 }
-
 .suggest-head {
-  padding: 16px 20px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--c-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   background: linear-gradient(135deg, var(--c-bg2), var(--c-bg3));
-  flex-shrink: 0;
-}
-.suggest-head-left {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-.suggest-head-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, rgba(102,192,244,0.15), rgba(102,192,244,0.05));
-  border: 1px solid rgba(102,192,244,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
 }
 .suggest-head-title {
   font-family: var(--f-display);
@@ -398,36 +169,28 @@
   letter-spacing: 0.07em;
   color: var(--c-white);
   text-transform: uppercase;
-  line-height: 1;
 }
 .suggest-head-sub {
   font-family: var(--f-mono);
   font-size: 0.6rem;
   color: var(--c-text3);
-  margin-top: 3px;
+  margin-top: 2px;
   letter-spacing: 0.05em;
 }
-
 .suggest-body {
-  padding: 18px 20px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  overflow-y: auto;
-  flex: 1;
+  gap: 12px;
 }
-
-/* ─────────────────────────────────────────
-   TYPE PILLS
-───────────────────────────────────────── */
 .suggest-type-row {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 .stype-pill {
-  padding: 6px 13px;
-  border-radius: 4px;
+  padding: 5px 12px;
+  border-radius: 3px;
   font-family: var(--f-display);
   font-weight: 600;
   font-size: 0.72rem;
@@ -439,150 +202,70 @@
   cursor: pointer;
   transition: all var(--tr);
   outline: none;
-  -webkit-tap-highlight-color: transparent;
-  /* bigger tap target on mobile */
-  min-height: 34px;
-  display: flex;
-  align-items: center;
 }
-.stype-pill:hover        { border-color: var(--c-blue-dim); color: var(--c-blue); background: var(--c-blue-glow2); }
-.stype-pill.active       { background: var(--c-blue-dim);  border-color: var(--c-blue-dim); color: #fff; }
-.stype-pill.active-bug   { background: var(--c-red);       border-color: var(--c-red);      color: #fff; }
-.stype-pill.active-game  { background: var(--c-green);     border-color: var(--c-green);    color: #fff; }
+.stype-pill:hover { border-color: var(--c-blue-dim); color: var(--c-blue); }
+.stype-pill.active { background: var(--c-blue-dim); border-color: var(--c-blue-dim); color: #fff; }
+.stype-pill.active-bug { background: var(--c-red); border-color: var(--c-red); color: #fff; }
+.stype-pill.active-game { background: var(--c-green); border-color: var(--c-green); color: #fff; }
 
-/* ─────────────────────────────────────────
-   TEXTAREA
-───────────────────────────────────────── */
 #suggest-textarea {
   width: 100%;
-  background: rgba(0,0,0,0.25);
+  background: rgba(0,0,0,0.3);
   border: 1px solid var(--c-border);
-  border-radius: 6px;
-  padding: 11px 13px;
+  border-radius: 4px;
+  padding: 10px 12px;
   font-family: var(--f-body);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--c-text);
   resize: none;
-  height: 110px;
+  height: 100px;
   outline: none;
-  transition: border-color var(--tr), background var(--tr);
+  transition: border-color var(--tr);
   box-sizing: border-box;
-  line-height: 1.55;
 }
-#suggest-textarea:focus {
-  border-color: var(--c-blue-dim);
-  background: rgba(0,0,0,0.35);
-}
+#suggest-textarea:focus { border-color: var(--c-blue-dim); }
 #suggest-textarea::placeholder { color: var(--c-text3); }
 
-/* ─────────────────────────────────────────
-   FOOTER
-───────────────────────────────────────── */
 .suggest-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  flex-wrap: wrap;
 }
 .suggest-char {
   font-family: var(--f-mono);
   font-size: 0.62rem;
   color: var(--c-text3);
-  transition: color var(--tr);
 }
 .suggest-char.warn { color: var(--c-red); }
-
 #suggest-submit {
   padding: 2px;
   background: linear-gradient(to right, #47bfff 5%, #1a44c2 60%);
-  border-radius: 4px;
+  border-radius: 2px;
   border: none;
   cursor: pointer;
-  transition: filter 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
-  flex-shrink: 0;
+  transition: filter 0.2s ease, opacity 0.2s ease;
 }
-#suggest-submit:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+#suggest-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 #suggest-submit span {
   display: block;
-  padding: 9px 22px;
+  padding: 7px 18px;
   color: #fff;
   font-size: 0.78rem;
   font-family: var(--f-display);
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-#suggest-submit:hover:not(:disabled) {
-  filter: brightness(1.2);
-  transform: translateY(-1px);
-}
-#suggest-submit:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-/* ─────────────────────────────────────────
-   SUCCESS STATE
-───────────────────────────────────────── */
+#suggest-submit:hover:not(:disabled) { filter: brightness(1.2); }
 .suggest-success {
   text-align: center;
-  padding: 32px 20px;
+  padding: 24px 18px;
   font-family: var(--f-mono);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--c-green2);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.suggest-success-icon {
-  font-size: 2rem;
-  margin-bottom: 4px;
-}
-
-/* ─────────────────────────────────────────
-   MOBILE
-───────────────────────────────────────── */
-@media (max-width: 600px) {
-  /* button moves to bottom center on mobile so thumb can reach it */
-  #suggest-btn {
-    bottom: 16px;
-    right: 50%;
-    transform: translateX(50%);
-    padding: 11px 20px;
-    font-size: 0.8rem;
-    border-radius: 50px;
-  }
-  #suggest-btn:hover {
-    transform: translateX(50%) translateY(-2px);
-  }
-  #suggest-btn:active {
-    transform: translateX(50%) translateY(0);
-  }
-
-  .suggest-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-  /* sheet slides up from bottom on mobile */
-  .suggest-box {
-    border-radius: 16px 16px 0 0;
-    max-width: 100%;
-    max-height: 92vh;
-    transform: translateY(100%);
-  }
-  .suggest-overlay.open .suggest-box {
-    transform: translateY(0);
-  }
-  .suggest-head { padding: 14px 16px; }
-  .suggest-body { padding: 16px; }
-  .suggest-type-row { gap: 5px; }
-  .stype-pill { font-size: 0.7rem; padding: 6px 11px; }
-  #suggest-textarea { height: 100px; font-size: 0.875rem; }
 }
 
 :root {
@@ -1110,12 +793,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div class="suggest-overlay" id="suggest-overlay">
   <div class="suggest-box">
     <div class="suggest-head">
-      <div class="suggest-head-left">
-        <div class="suggest-head-icon">💬</div>
-        <div>
-          <div class="suggest-head-title">Send Feedback</div>
-          <div class="suggest-head-sub">Suggestions, bug reports, game requests — all welcome</div>
-        </div>
+      <div>
+        <div class="suggest-head-title">Send Feedback</div>
+        <div class="suggest-head-sub">Suggestions, bug reports, game requests — all welcome</div>
       </div>
       <button class="modal-close" id="suggest-close" aria-label="Close">
         <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
@@ -1135,8 +815,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
     </div>
     <div class="suggest-success" id="suggest-success">
-      <div class="suggest-success-icon">✅</div>
-      Sent! Thanks for the feedback.
+      ✓ &nbsp; Sent! Thanks for the feedback.
     </div>
   </div>
 </div>
@@ -2158,7 +1837,6 @@ async function checkKey() {
     checkForResponse();
     notifyDeviceOnUnlock();
     document.getElementById('key-gate').classList.add('hidden');
-    if (window.showHowToIfNeeded) window.showHowToIfNeeded();
     showLoader();
     setLoaderBar(10, 'Initializing…');
     requestAnimationFrame(function () {
@@ -2316,173 +1994,45 @@ async function checkKey() {
 })();
 
 /* ── RESPONSE CHECKER ── */
-/* Fix: uses GitHub API directly (bypasses CDN cache) and retries with
-   backoff so a response written by the bot shows on the very first
-   page load after unlock, not just on subsequent ones. */
 async function checkForResponse() {
-  var RETRIES   = 3;
-  var DELAYS    = [0, 3000, 6000]; // immediate, then 3s, then 6s
-  var seenKey   = 'sv_seen_' + SV_UID;
+  try {
+    var res = await fetch('https://raw.githubusercontent.com/lusheeesh/rblx/main/svresponses.json?t=' + Date.now());
+    if (!res.ok) return;
+    var data = await res.json();
+    if (!Array.isArray(data)) return;
 
-  for (var attempt = 0; attempt < RETRIES; attempt++) {
-    if (attempt > 0) {
-      await new Promise(function (r) { setTimeout(r, DELAYS[attempt]); });
-    }
-    try {
-      /* Use GitHub API instead of raw.githubusercontent.com to bypass CDN cache */
-      var apiUrl = 'https://api.github.com/repos/lusheeesh/rblx/contents/svresponses.json?t=' + Date.now();
-      var res    = await fetch(apiUrl);
-      if (!res.ok) continue;
-      var json   = await res.json();
-      if (!json.content) continue;
+    /* find response for this user */
+    var match = data.find(function (r) { return r.uid === SV_UID; });
+    if (!match) return;
 
-      var decoded = JSON.parse(atob(json.content.replace(/\n/g, '')));
-      if (!Array.isArray(decoded)) continue;
+    /* check if user already dismissed this response */
+    var seenKey = 'sv_seen_' + SV_UID;
+    var seen    = localStorage.getItem(seenKey);
+    if (seen === match.response) return; /* same message, already dismissed */
 
-      var match = decoded.find(function (r) { return r.uid === SV_UID; });
-      if (!match) return; /* no response for this user — stop retrying */
+    /* show it */
+    var notify  = document.getElementById('response-notify');
+    var msgEl   = document.getElementById('rn-message');
+    var dateEl  = document.getElementById('rn-date');
+    var closeEl = document.getElementById('rn-close');
 
-      /* already dismissed this exact message */
-      if (localStorage.getItem(seenKey) === match.response) return;
+    if (!notify || !msgEl) return;
+    msgEl.textContent  = match.response;
+    if (dateEl) dateEl.textContent = match.date || '';
+    notify.style.display = '';
+    setTimeout(function () { notify.classList.add('show'); }, 50);
 
-      /* show notification */
-      var notify  = document.getElementById('response-notify');
-      var msgEl   = document.getElementById('rn-message');
-      var dateEl  = document.getElementById('rn-date');
-      var closeEl = document.getElementById('rn-close');
+    /* close button — saves to localStorage so it won't show again */
+    if (closeEl) closeEl.addEventListener('click', function () {
+      notify.classList.remove('show');
+      localStorage.setItem(seenKey, match.response);
+      setTimeout(function () { notify.style.display = 'none'; }, 400);
+    });
 
-      if (!notify || !msgEl) return;
-      msgEl.textContent = match.response;
-      if (dateEl) dateEl.textContent = match.date || '';
-      notify.style.display = '';
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          notify.classList.add('show');
-        });
-      });
-
-      /* close — mark dismissed so it never shows again for this message */
-      if (closeEl) {
-        /* remove old listeners by cloning */
-        var newClose = closeEl.cloneNode(true);
-        closeEl.parentNode.replaceChild(newClose, closeEl);
-        newClose.addEventListener('click', function () {
-          notify.classList.remove('show');
-          try { localStorage.setItem(seenKey, match.response); } catch (e) {}
-          setTimeout(function () { notify.style.display = 'none'; }, 400);
-        });
-      }
-      return; /* success — stop retrying */
-    } catch (e) { /* silent, try again */ }
-  }
+  } catch (e) { /* silent */ }
 }
 
-/* ── HOW TO USE ── */
-(function () {
-  var STORAGE_KEY = 'sv_howto_seen';
-
-  function getOverlay()   { return document.getElementById('howto-overlay'); }
-  function getGotItBtn()  { return document.getElementById('howto-got-it'); }
-  function getNoShowChk() { return document.getElementById('howto-no-show'); }
-
-  function closeHowTo() {
-    var overlay   = getOverlay();
-    var noShowChk = getNoShowChk();
-    if (overlay) overlay.classList.remove('open');
-    document.body.style.overflow = '';
-    if (noShowChk && noShowChk.checked) {
-      try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
-    }
-  }
-
-  window.showHowToIfNeeded = function () {
-    try { if (localStorage.getItem(STORAGE_KEY)) return; } catch (e) {}
-    var overlay = getOverlay();
-    if (!overlay) return; // safe — just skip if element isn't there
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-
-    // bind events here since element now exists
-    var gotItBtn = getGotItBtn();
-    if (gotItBtn) gotItBtn.addEventListener('click', closeHowTo);
-
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) closeHowTo();
-    });
-  };
-
-  // Escape key always works
-  document.addEventListener('keydown', function (e) {
-    var overlay = getOverlay();
-    if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) closeHowTo();
-  });
-})();
-
-/* ══════════════════════════════════════════
-   
 </script>
 
-<!-- HOW TO USE OVERLAY -->
-<div id="howto-overlay">
-  <div class="howto-box">
-
-    <div class="howto-head">
-      <div class="howto-head-icon">📖</div>
-      <div class="howto-head-text">
-        <div class="howto-head-title">How to get an account</div>
-        <div class="howto-head-sub">Read this once — takes 30 seconds</div>
-      </div>
-    </div>
-
-    <div class="howto-steps">
-
-      <div class="howto-step">
-        <div class="howto-step-num">1</div>
-        <div class="howto-step-body">
-          <div class="howto-step-title">Browse & pick an account</div>
-          <div class="howto-step-desc">Scroll through the vault and find an account with the games you want. Click the card to see the full game list.</div>
-        </div>
-      </div>
-
-      <div class="howto-step">
-        <div class="howto-step-num">2</div>
-        <div class="howto-step-body">
-          <div class="howto-step-title">Click a link button</div>
-          <div class="howto-step-desc">Each account has a <span>Work.ink</span> or <span>Linkvertise</span> button. Click either one — both lead to the same account details.</div>
-        </div>
-      </div>
-
-      <div class="howto-step">
-        <div class="howto-step-num">3</div>
-        <div class="howto-step-body">
-          <div class="howto-step-title">Complete the short task</div>
-          <div class="howto-step-desc">You'll be shown a quick ad or task. Complete it — this is how the site stays free. It usually takes <span>15–30 seconds</span>.</div>
-        </div>
-      </div>
-
-      <div class="howto-step">
-        <div class="howto-step-num">4</div>
-        <div class="howto-step-body">
-          <div class="howto-step-title">Get the credentials</div>
-          <div class="howto-step-desc">After completing the task you'll see the username and password.</div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="howto-divider"></div>
-
-    <div class="howto-footer">
-      <label class="howto-dont-show">
-        <input type="checkbox" id="howto-no-show">
-        <span class="howto-dont-show-label">Don't show this again</span>
-      </label>
-      <button id="howto-got-it"><span>Got it</span></button>
-    </div>
-
-  </div>
-</div>
-
-   
 </body>
 </html>
