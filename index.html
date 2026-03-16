@@ -188,8 +188,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  outline: none !important;          /* ← add this */
-  -webkit-tap-highlight-color: transparent;  /* ← add this */
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
 }
 #suggest-btn:hover {
   border-color: var(--c-blue-dim);
@@ -904,8 +904,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
-<!-- BROADCAST NOTIFICATION -->
-<div id="broadcast-notify">
+<!-- BROADCAST NOTIFICATION — hidden until needed -->
+<div id="broadcast-notify" style="display:none;">
   <div class="bc-progress"><div class="bc-progress-bar" id="bc-progress-bar"></div></div>
   <div class="bc-head">
     <div class="bc-title">📢 Announcement</div>
@@ -920,7 +920,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
-<!-- RESPONSE NOTIFICATION -->
+<!-- RESPONSE NOTIFICATION — hidden until needed -->
 <div id="response-notify" style="display:none;">
   <div class="rn-head">
     <div class="rn-title">💬 Response to your feedback</div>
@@ -984,7 +984,10 @@ var SV_UID = getUserId();
 /* ── DEVICE ── */
 var SV_DEVICE = window.innerWidth <= 768 ? '📱 Mobile' : '🖥️ Desktop';
 
-/* ── TIMERS — FIX: SV_LAST_ACTIVITY declared here ── */
+/* ── NOTIFICATION URLS — global so checker functions can always reach them ── */
+var BROADCAST_URL = 'https://raw.githubusercontent.com/lusheeesh/rblx/main/svbroadcast.json';
+
+/* ── TIMERS ── */
 var SV_PAGE_START    = Date.now();
 var SV_UNLOCK_TIME   = null;
 var SV_LAST_ACTIVITY = Date.now();
@@ -1160,12 +1163,11 @@ window.addEventListener('visibilitychange', function () {
 /* ══════════════════════════════════════════
    CONFIG
 ══════════════════════════════════════════ */
-var ACCOUNTS_URL = "https://raw.githubusercontent.com/lusheeesh/rblx/main/svgames.json";
-var KEY_URL      = "https://raw.githubusercontent.com/lusheeesh/rblx/refs/heads/main/svkey.txt";
-
+var ACCOUNTS_URL  = "https://raw.githubusercontent.com/lusheeesh/rblx/main/svgames.json";
+var KEY_URL       = "https://raw.githubusercontent.com/lusheeesh/rblx/refs/heads/main/svkey.txt";
 var CACHE_KEY     = 'sv_v10'; // overwritten at runtime by svcache.txt
 var CACHE_VER_URL = 'https://raw.githubusercontent.com/lusheeesh/rblx/main/svcache.txt';
-var BROADCAST_URL = 'https://raw.githubusercontent.com/lusheeesh/rblx/main/svbroadcast.json';
+/* NOTE: BROADCAST_URL is declared in the outer script above — visible everywhere */
 var CONCURRENCY = 8;
 var BATCH_DELAY = 60;
 var TIMEOUT_MS  = 7000;
@@ -1322,7 +1324,7 @@ function fetchGame(appid) {
         id:        id,
         name:      d.name.trim(),
         headerImg: d.header_image || hdr(id),
-        iconImg:   d.header_image || hdr(id)  /* FIX: was hdr(id) only — caused 404 on some games */
+        iconImg:   d.header_image || hdr(id)
       };
       cacheSet(id, entry);
       saveCache();
@@ -1942,8 +1944,7 @@ async function checkKey() {
     SV_UNLOCK_TIME = Date.now();
     var sb = document.getElementById('suggest-btn');
     if (sb) sb.style.display = '';
-    checkForResponse();
-    checkForBroadcast();
+    startNotificationPolling();
     notifyDeviceOnUnlock();
     document.getElementById('key-gate').classList.add('hidden');
     showLoader();
@@ -2102,6 +2103,15 @@ async function checkKey() {
   });
 })();
 
+/* ══════════════════════════════════════════
+   NOTIFICATION STATE
+   Tracks what's showing this session so the
+   poll loop never double-shows the same thing.
+══════════════════════════════════════════ */
+var _bcShownId   = null;  /* broadcast ID currently shown/dismissed this session */
+var _rnShownText = null;  /* response text currently shown this session */
+var _pollTimer   = null;  /* setInterval handle — null means not started yet */
+
 /* ── BROADCAST CHECKER ── */
 async function checkForBroadcast() {
   try {
@@ -2110,35 +2120,45 @@ async function checkForBroadcast() {
     var data = await res.json();
     if (!data || !data.active || !data.message || !data.id) return;
 
+    /* already dismissed permanently by this user? */
     var seenKey = 'sv_bc_' + data.id;
     if (localStorage.getItem(seenKey)) return;
 
-    var notify  = document.getElementById('broadcast-notify');
-    var msgEl   = document.getElementById('bc-message');
-    var dateEl  = document.getElementById('bc-date');
-    var closeEl = document.getElementById('bc-close');
-    var pb      = document.getElementById('bc-progress-bar');
+    /* already showing this exact broadcast this session? */
+    if (_bcShownId === data.id) return;
+    _bcShownId = data.id;
+
+    var notify = document.getElementById('broadcast-notify');
+    var msgEl  = document.getElementById('bc-message');
+    var dateEl = document.getElementById('bc-date');
+    var pb     = document.getElementById('bc-progress-bar');
 
     if (!notify || !msgEl) return;
     msgEl.textContent = data.message;
     if (dateEl) dateEl.textContent = data.date || '';
+
+    /* reset progress bar animation so it plays fresh */
     if (pb) { pb.style.animation = 'none'; void pb.offsetWidth; pb.style.animation = ''; }
 
     notify.style.display = '';
-    setTimeout(function () { notify.classList.add('show'); }, 50);
+    void notify.offsetWidth; /* force reflow before adding class */
+    notify.classList.add('show');
 
+    /* auto-dismiss after 10s */
     var autoDismiss = setTimeout(function () {
       notify.classList.remove('show');
       localStorage.setItem(seenKey, '1');
       setTimeout(function () { notify.style.display = 'none'; }, 400);
     }, 10500);
 
-    if (closeEl) closeEl.addEventListener('click', function () {
+    /* use onclick = to replace any previous handler — no stacking on poll cycles */
+    var closeEl = document.getElementById('bc-close');
+    if (closeEl) closeEl.onclick = function () {
       clearTimeout(autoDismiss);
       notify.classList.remove('show');
       localStorage.setItem(seenKey, '1');
       setTimeout(function () { notify.style.display = 'none'; }, 400);
-    });
+    };
 
   } catch (e) { /* silent */ }
 }
@@ -2151,35 +2171,50 @@ async function checkForResponse() {
     var data = await res.json();
     if (!Array.isArray(data)) return;
 
-    /* find response for this user */
     var match = data.find(function (r) { return r.uid === SV_UID; });
     if (!match) return;
 
-    /* check if user already dismissed this response */
+    /* already dismissed permanently? */
     var seenKey = 'sv_seen_' + SV_UID;
-    var seen    = localStorage.getItem(seenKey);
-    if (seen === match.response) return; /* same message, already dismissed */
+    if (localStorage.getItem(seenKey) === match.response) return;
 
-    /* show it */
-    var notify  = document.getElementById('response-notify');
-    var msgEl   = document.getElementById('rn-message');
-    var dateEl  = document.getElementById('rn-date');
-    var closeEl = document.getElementById('rn-close');
+    /* already showing this exact response text this session? */
+    if (_rnShownText === match.response) return;
+    _rnShownText = match.response;
+
+    var notify = document.getElementById('response-notify');
+    var msgEl  = document.getElementById('rn-message');
+    var dateEl = document.getElementById('rn-date');
 
     if (!notify || !msgEl) return;
-    msgEl.textContent  = match.response;
+    msgEl.textContent = match.response;
     if (dateEl) dateEl.textContent = match.date || '';
+
     notify.style.display = '';
+    void notify.offsetWidth; /* force reflow so CSS transition fires */
     setTimeout(function () { notify.classList.add('show'); }, 50);
 
-    /* close button — saves to localStorage so it won't show again */
-    if (closeEl) closeEl.addEventListener('click', function () {
+    /* use onclick = to replace any previous handler — no stacking on poll cycles */
+    var closeEl = document.getElementById('rn-close');
+    if (closeEl) closeEl.onclick = function () {
       notify.classList.remove('show');
       localStorage.setItem(seenKey, match.response);
+      _rnShownText = null; /* reset so a future new response can show again */
       setTimeout(function () { notify.style.display = 'none'; }, 400);
-    });
+    };
 
   } catch (e) { /* silent */ }
+}
+
+/* ── POLLING — starts on unlock, checks every 30s forever ── */
+function startNotificationPolling() {
+  if (_pollTimer) return; /* already running, don't double-start */
+  checkForBroadcast();    /* run immediately */
+  checkForResponse();
+  _pollTimer = setInterval(function () {
+    checkForBroadcast();
+    checkForResponse();
+  }, 30000); /* then every 30 seconds */
 }
 
 </script>
