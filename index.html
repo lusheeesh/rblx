@@ -195,21 +195,40 @@
 /* ─────────────────────────────────────────
    RESPONSE NOTIFICATION
 ───────────────────────────────────────── */
-#response-notify {
+/* ─────────────────────────────────────────
+   NOTIFICATION STACK
+───────────────────────────────────────── */
+#notif-stack {
   position: fixed;
   top: 80px;
   right: 20px;
   z-index: 600;
-  background: var(--c-bg2);
-  border: 1px solid var(--c-blue-dim);
-  border-radius: 8px;
   width: 300px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(102,192,244,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+#response-notify,
+#broadcast-notify {
+  width: 100%;
+  pointer-events: auto;
+  background: var(--c-bg2);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(102,192,244,0.07);
   transform: translateX(340px);
   transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
   overflow: hidden;
 }
-#response-notify.show {
+#response-notify {
+  border: 1px solid var(--c-blue-dim);
+}
+#broadcast-notify {
+  border: 1px solid rgba(200,169,81,0.5);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,81,0.08);
+}
+#response-notify.show,
+#broadcast-notify.show {
   transform: translateX(0);
 }
 .rn-head {
@@ -268,49 +287,85 @@
 }
 
 /* ─────────────────────────────────────────
+   BROADCAST NOTIFICATION (gold accent)
+───────────────────────────────────────── */
+.bc-head {
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--c-bg2), var(--c-bg3));
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bc-title {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+}
+.bc-body {
+  padding: 12px 14px;
+}
+.bc-label {
+  font-family: var(--f-mono);
+  font-size: 0.6rem;
+  color: var(--c-text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.bc-message {
+  font-family: var(--f-body);
+  font-size: 0.82rem;
+  color: var(--c-text);
+  line-height: 1.5;
+}
+.bc-date {
+  font-family: var(--f-mono);
+  font-size: 0.58rem;
+  color: var(--c-text3);
+  margin-top: 8px;
+}
+
+/* ─────────────────────────────────────────
    FEEDBACK BUTTON
 ───────────────────────────────────────── */
 #suggest-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  left: auto;
-  z-index: 500;
-  background: linear-gradient(135deg, rgba(102,192,244,0.12), rgba(102,192,244,0.06));
-  border: 1px solid rgba(102,192,244,0.35);
-  border-radius: 50px;
-  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px;
+  height: 34px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
   font-family: var(--f-display);
   font-weight: 700;
   font-size: 0.78rem;
-  color: var(--c-blue);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
+  color: var(--c-text2);
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  transition: all var(--tr);
+  white-space: nowrap;
   outline: none !important;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 20px rgba(102,192,244,0.15), 0 0 0 0 rgba(102,192,244,0.4);
-  animation: suggestPulse 2.8s ease-in-out infinite;
   user-select: none;
+  flex-shrink: 0;
 }
 #suggest-btn:hover {
-  background: var(--c-blue-dim);
+  background: var(--c-blue-glow2);
   border-color: var(--c-blue-dim);
-  color: #fff;
-  box-shadow: 0 6px 24px rgba(102,192,244,0.35);
-  animation: none;
-  transform: translateY(-2px);
+  color: var(--c-blue);
 }
 #suggest-btn:active {
-  transform: translateY(0px);
+  transform: scale(0.97);
 }
 #suggest-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   stroke: currentColor;
   fill: none;
   stroke-width: 2;
@@ -547,21 +602,9 @@
    MOBILE
 ───────────────────────────────────────── */
 @media (max-width: 600px) {
-  /* button moves to bottom center on mobile so thumb can reach it */
-  #suggest-btn {
-    bottom: 16px;
-    right: 50%;
-    transform: translateX(50%);
-    padding: 11px 20px;
-    font-size: 0.8rem;
-    border-radius: 50px;
-  }
-  #suggest-btn:hover {
-    transform: translateX(50%) translateY(-2px);
-  }
-  #suggest-btn:active {
-    transform: translateX(50%) translateY(0);
-  }
+  /* icon-only on small screens to save space */
+  #suggest-btn .suggest-btn-label { display: none; }
+  #suggest-btn { padding: 5px 9px; gap: 0; }
 
   .suggest-overlay {
     align-items: flex-end;
@@ -819,6 +862,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 ───────────────────────────────────────── */
 #app{position:relative;z-index:1;}
 
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .site-header{position:sticky;top:0;z-index:200;background:rgba(23,26,33,0.96);border-bottom:1px solid var(--c-border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
 .header-inner{max-width:1440px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
 .brand{display:flex;align-items:center;gap:11px;flex-shrink:0;}
@@ -1029,10 +1073,16 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="brand-sub">Account Library</div>
         </div>
       </div>
-      <div class="header-stats">
-        <div class="hstat"><div class="hstat-val" id="stat-accounts">–</div><div class="hstat-lbl">Accounts</div></div>
-        <div class="hstat"><div class="hstat-val" id="stat-games">–</div><div class="hstat-lbl">Games</div></div>
-        <div class="hstat"><div class="hstat-val" id="stat-showing">–</div><div class="hstat-lbl">Showing</div></div>
+      <div class="header-right">
+        <button id="suggest-btn" style="display:none;" aria-label="Send Feedback">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="suggest-btn-label">Feedback</span>
+        </button>
+        <div class="header-stats">
+          <div class="hstat"><div class="hstat-val" id="stat-accounts">–</div><div class="hstat-lbl">Accounts</div></div>
+          <div class="hstat"><div class="hstat-val" id="stat-games">–</div><div class="hstat-lbl">Games</div></div>
+          <div class="hstat"><div class="hstat-val" id="stat-showing">–</div><div class="hstat-lbl">Showing</div></div>
+        </div>
       </div>
     </div>
   </header>
@@ -1099,12 +1149,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
-<!-- SUGGESTION BUTTON — only visible after unlock -->
-<button id="suggest-btn" style="display:none;">
-  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  Feedback
-</button>
-
 <!-- SUGGESTION MODAL -->
 <div class="suggest-overlay" id="suggest-overlay">
   <div class="suggest-box">
@@ -1140,19 +1184,39 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
-<!-- RESPONSE NOTIFICATION -->
-<div id="response-notify" style="display:none;">
-  <div class="rn-head">
-    <div class="rn-title">💬 Response to your feedback</div>
-    <button class="rn-close" id="rn-close">
-      <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
-    </button>
+<!-- NOTIFICATION STACK — response + broadcast -->
+<div id="notif-stack">
+
+  <!-- BROADCAST NOTIFICATION (all users) -->
+  <div id="broadcast-notify" style="display:none;">
+    <div class="bc-head">
+      <div class="bc-title">📢 Announcement</div>
+      <button class="rn-close" id="bc-close">
+        <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="bc-body">
+      <div class="bc-label">From revoltz</div>
+      <div class="bc-message" id="bc-message"></div>
+      <div class="bc-date" id="bc-date"></div>
+    </div>
   </div>
-  <div class="rn-body">
-    <div class="rn-label">revoltz replied</div>
-    <div class="rn-message" id="rn-message"></div>
-    <div class="rn-date" id="rn-date"></div>
+
+  <!-- RESPONSE NOTIFICATION (per-user) -->
+  <div id="response-notify" style="display:none;">
+    <div class="rn-head">
+      <div class="rn-title">💬 Response to your feedback</div>
+      <button class="rn-close" id="rn-close">
+        <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="rn-body">
+      <div class="rn-label">revoltz replied</div>
+      <div class="rn-message" id="rn-message"></div>
+      <div class="rn-date" id="rn-date"></div>
+    </div>
   </div>
+
 </div>
 
 <div id="toasts"></div>
@@ -1962,6 +2026,33 @@ function bindEvents() {
 }
 
 /* ══════════════════════════════════════════
+   REMOTE CACHE SEED — svcache.txt
+   Fetches pre-built game data from GitHub so
+   game names appear instantly without hitting
+   individual CORS proxies on cold visits.
+══════════════════════════════════════════ */
+function loadRemoteCache() {
+  return fetchWithTimeout(
+    'https://raw.githubusercontent.com/lusheeesh/rblx/main/svcache.txt?t=' + Date.now(),
+    8000
+  )
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (data) {
+      if (!data || typeof data !== 'object') return;
+      var seeded = 0;
+      Object.keys(data).forEach(function (k) {
+        /* localStorage takes priority — only fill gaps */
+        if (!cacheHasReal(k) && data[k] && !data[k]._fb && data[k].name) {
+          cacheSet(k, data[k]);
+          seeded++;
+        }
+      });
+      if (seeded > 0) saveCache();
+    })
+    .catch(function () { /* silent — svcache.txt is optional */ });
+}
+
+/* ══════════════════════════════════════════
    BACKGROUND PRE-LOADER
 ══════════════════════════════════════════ */
 function startBackgroundLoad() {
@@ -1971,10 +2062,14 @@ function startBackgroundLoad() {
       return r.json();
     })
     .then(function (data) {
-      loadCache();
+      loadCache();                      /* 1. seed from localStorage */
       accounts = normalise(Array.isArray(data) ? data : []);
       if (accounts.length > 0) {
-        _namesPromise = fetchAll(null).then(function () { _bgDone = true; });
+        /* 2. seed from svcache.txt (fills gaps localStorage doesn't have) */
+        /* 3. then fetch any still-missing names from CORS proxies        */
+        _namesPromise = loadRemoteCache().then(function () {
+          return fetchAll(null);
+        }).then(function () { _bgDone = true; });
       } else {
         _bgDone = true;
       }
@@ -2154,7 +2249,7 @@ async function checkKey() {
     SV_UNLOCK_TIME = Date.now();
     var sb = document.getElementById('suggest-btn');
     if (sb) sb.style.display = '';
-    checkForResponse();
+    startNotifPolling();
     notifyDeviceOnUnlock();
     document.getElementById('key-gate').classList.add('hidden');
     if (window.showHowToIfNeeded) window.showHowToIfNeeded();
@@ -2338,6 +2433,7 @@ async function checkForResponse() {
     var closeEl = document.getElementById('rn-close');
 
     if (!notify || !msgEl) return;
+    if (notify.classList.contains('show')) return; /* already visible */
     msgEl.textContent  = match.response;
     if (dateEl) dateEl.textContent = match.date || '';
     notify.style.display = '';
@@ -2348,9 +2444,54 @@ async function checkForResponse() {
       notify.classList.remove('show');
       localStorage.setItem(seenKey, match.response);
       setTimeout(function () { notify.style.display = 'none'; }, 400);
-    });
+    }, { once: true });
 
   } catch (e) { /* silent */ }
+}
+
+/* ── BROADCAST CHECKER (shown to ALL users) ── */
+async function checkForBroadcast() {
+  try {
+    var res = await fetch('https://raw.githubusercontent.com/lusheeesh/rblx/main/svbroadcast.json?t=' + Date.now());
+    if (!res.ok) return;
+    var data = await res.json();
+    if (!data || !data.id || !data.message) return;
+
+    /* check if this broadcast has been dismissed */
+    var seenKey = 'sv_seen_bc_' + data.id;
+    try { if (localStorage.getItem(seenKey)) return; } catch (e) {}
+
+    var notify  = document.getElementById('broadcast-notify');
+    var msgEl   = document.getElementById('bc-message');
+    var dateEl  = document.getElementById('bc-date');
+    var closeEl = document.getElementById('bc-close');
+
+    if (!notify || !msgEl) return;
+    if (notify.classList.contains('show')) return; /* already visible */
+    msgEl.textContent = data.message;
+    if (dateEl) dateEl.textContent = data.date || '';
+    notify.style.display = '';
+    setTimeout(function () { notify.classList.add('show'); }, 50);
+
+    if (closeEl) closeEl.addEventListener('click', function () {
+      notify.classList.remove('show');
+      try { localStorage.setItem(seenKey, '1'); } catch (e) {}
+      setTimeout(function () { notify.style.display = 'none'; }, 400);
+    }, { once: true });
+
+  } catch (e) { /* silent */ }
+}
+
+/* ── NOTIFICATION POLLING — checks both every 60s after unlock ── */
+var SV_NOTIF_INTERVAL = null;
+function startNotifPolling() {
+  checkForBroadcast();
+  checkForResponse();
+  if (SV_NOTIF_INTERVAL) return; /* only one interval ever */
+  SV_NOTIF_INTERVAL = setInterval(function () {
+    checkForBroadcast();
+    checkForResponse();
+  }, 60000);
 }
 
 /* ── HOW TO USE ── */
