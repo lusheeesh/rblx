@@ -9,6 +9,190 @@
 <style>
 
 /* ─────────────────────────────────────────
+   HOW TO USE OVERLAY
+───────────────────────────────────────── */
+#howto-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  background: rgba(10, 13, 18, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+#howto-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+.howto-box {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border2);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(102,192,244,0.08);
+  transform: scale(0.93) translateY(20px);
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+#howto-overlay.open .howto-box {
+  transform: scale(1) translateY(0);
+}
+.howto-head {
+  padding: 18px 20px 14px;
+  background: linear-gradient(135deg, var(--c-bg2), var(--c-bg3));
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.howto-head-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(102,192,244,0.15), rgba(102,192,244,0.05));
+  border: 1px solid rgba(102,192,244,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+.howto-head-text {}
+.howto-head-title {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-white);
+  line-height: 1;
+}
+.howto-head-sub {
+  font-family: var(--f-mono);
+  font-size: 0.6rem;
+  color: var(--c-text3);
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
+.howto-steps {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.howto-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+.howto-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(102,192,244,0.1);
+  border: 1px solid rgba(102,192,244,0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--c-blue);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.howto-step-body {}
+.howto-step-title {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: var(--c-white);
+  line-height: 1.2;
+}
+.howto-step-desc {
+  font-family: var(--f-body);
+  font-size: 0.8rem;
+  color: var(--c-text2);
+  margin-top: 3px;
+  line-height: 1.55;
+}
+.howto-step-desc span {
+  color: var(--c-blue);
+  font-weight: 600;
+}
+.howto-divider {
+  height: 1px;
+  background: var(--c-border);
+  margin: 0 20px;
+}
+.howto-footer {
+  padding: 14px 20px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.howto-dont-show {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+.howto-dont-show input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--c-blue);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.howto-dont-show-label {
+  font-family: var(--f-mono);
+  font-size: 0.65rem;
+  color: var(--c-text3);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+#howto-got-it {
+  padding: 2px;
+  background: linear-gradient(to right, #47bfff 5%, #1a44c2 60%);
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+  flex-shrink: 0;
+}
+#howto-got-it:hover { filter: brightness(1.2); }
+#howto-got-it span {
+  display: block;
+  padding: 8px 22px;
+  color: #fff;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 480px) {
+  .howto-box { border-radius: 10px; }
+  .howto-head { padding: 14px 16px 12px; }
+  .howto-steps { padding: 14px 16px; gap: 11px; }
+  .howto-divider { margin: 0 16px; }
+  .howto-footer { padding: 12px 16px 16px; }
+  .howto-step-desc { font-size: 0.78rem; }
+}
+
+/* ─────────────────────────────────────────
    RESPONSE NOTIFICATION
 ───────────────────────────────────────── */
 #response-notify {
@@ -1645,7 +1829,7 @@ function bindEvents() {
    BACKGROUND PRE-LOADER
 ══════════════════════════════════════════ */
 function startBackgroundLoad() {
-  _acctPromise = fetchWithTimeout(ACCOUNTS_URL + '?t=' + Date.now(), 12000)
+  _acctPromise = fetchWithTimeout(ACCOUNTS_URL, 12000)
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -1837,6 +2021,7 @@ async function checkKey() {
     checkForResponse();
     notifyDeviceOnUnlock();
     document.getElementById('key-gate').classList.add('hidden');
+    if (window.showHowToIfNeeded) window.showHowToIfNeeded();
     showLoader();
     setLoaderBar(10, 'Initializing…');
     requestAnimationFrame(function () {
@@ -2032,7 +2217,109 @@ async function checkForResponse() {
   } catch (e) { /* silent */ }
 }
 
+/* ── HOW TO USE ── */
+(function () {
+  var STORAGE_KEY = 'sv_howto_seen';
+
+  function getOverlay()   { return document.getElementById('howto-overlay'); }
+  function getGotItBtn()  { return document.getElementById('howto-got-it'); }
+  function getNoShowChk() { return document.getElementById('howto-no-show'); }
+
+  function closeHowTo() {
+    var overlay   = getOverlay();
+    var noShowChk = getNoShowChk();
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    if (noShowChk && noShowChk.checked) {
+      try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+    }
+  }
+
+  window.showHowToIfNeeded = function () {
+    try { if (localStorage.getItem(STORAGE_KEY)) return; } catch (e) {}
+    var overlay = getOverlay();
+    if (!overlay) return; // safe — just skip if element isn't there
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // bind events here since element now exists
+    var gotItBtn = getGotItBtn();
+    if (gotItBtn) gotItBtn.addEventListener('click', closeHowTo);
+
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeHowTo();
+    });
+  };
+
+  // Escape key always works
+  document.addEventListener('keydown', function (e) {
+    var overlay = getOverlay();
+    if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) closeHowTo();
+  });
+})();
+
 </script>
+
+<!-- HOW TO USE OVERLAY -->
+<div id="howto-overlay">
+  <div class="howto-box">
+
+    <div class="howto-head">
+      <div class="howto-head-icon">📖</div>
+      <div class="howto-head-text">
+        <div class="howto-head-title">How to get an account</div>
+        <div class="howto-head-sub">Read this once — takes 30 seconds</div>
+      </div>
+    </div>
+
+    <div class="howto-steps">
+
+      <div class="howto-step">
+        <div class="howto-step-num">1</div>
+        <div class="howto-step-body">
+          <div class="howto-step-title">Browse & pick an account</div>
+          <div class="howto-step-desc">Scroll through the vault and find an account with the games you want. Click the card to see the full game list.</div>
+        </div>
+      </div>
+
+      <div class="howto-step">
+        <div class="howto-step-num">2</div>
+        <div class="howto-step-body">
+          <div class="howto-step-title">Click a link button</div>
+          <div class="howto-step-desc">Each account has a <span>Work.ink</span> or <span>Linkvertise</span> button. Click either one — both lead to the same account details.</div>
+        </div>
+      </div>
+
+      <div class="howto-step">
+        <div class="howto-step-num">3</div>
+        <div class="howto-step-body">
+          <div class="howto-step-title">Complete the short task</div>
+          <div class="howto-step-desc">You'll be shown a quick ad or task. Complete it — this is how the site stays free. It usually takes <span>15–30 seconds</span>.</div>
+        </div>
+      </div>
+
+      <div class="howto-step">
+        <div class="howto-step-num">4</div>
+        <div class="howto-step-body">
+          <div class="howto-step-title">Get the credentials</div>
+          <div class="howto-step-desc">After completing the task you'll see the username and password.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="howto-divider"></div>
+
+    <div class="howto-footer">
+      <label class="howto-dont-show">
+        <input type="checkbox" id="howto-no-show">
+        <span class="howto-dont-show-label">Don't show this again</span>
+      </label>
+      <button id="howto-got-it"><span>Got it</span></button>
+    </div>
+
+  </div>
+</div>
 
 </body>
 </html>
