@@ -2421,10 +2421,13 @@ async function checkKey() {
    allowing a 30s interval while staying under the 60 req/hr limit.
 ─────────────────────────────────────────────────────────────────── */
 async function fetchGitHubContents(filename) {
-  var res = await fetch(
-    'https://api.github.com/repos/lusheeesh/rblx/contents/' + filename,
-    { headers: { 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
-  );
+  var url = filename === 'svnotifs.json'
+    ? '/api/notifs'
+    : 'https://api.github.com/repos/lusheeesh/rblx/contents/' + filename;
+  var opts = filename === 'svnotifs.json'
+    ? { cache: 'no-store' }
+    : { headers: { 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' };
+  var res = await fetch(url, opts);
   if (!res.ok) throw new Error('HTTP ' + res.status);
   var envelope = await res.json();
   var json = atob(envelope.content.replace(/\n/g, ''));
@@ -2509,7 +2512,7 @@ var SV_NOTIF_INTERVAL = null;
 function startNotifPolling() {
   checkNotifications();
   if (SV_NOTIF_INTERVAL) return; /* only one interval ever */
-  SV_NOTIF_INTERVAL = setInterval(checkNotifications, 30000);
+  SV_NOTIF_INTERVAL = setInterval(checkNotifications, 5000);
 }
 
 /* ── HOW TO USE ── */
