@@ -1416,7 +1416,10 @@ window.addEventListener('visibilitychange', function () {
   if (document.visibilityState !== 'hidden') return;
   clearTimeout(SV_IDLE_TIMER);
   var sessionUrl   = getSessionUrl();
-  var totalTime    = fmtDuration(Date.now() - SV_PAGE_START);
+  var totalMs = Date.now() - SV_PAGE_START;
+  if (totalMs < 1000) return; // don't send if less than 1s
+
+  var totalTime = fmtDuration(totalMs);
   var unlockedTime = SV_UNLOCK_TIME ? fmtDuration(Date.now() - SV_UNLOCK_TIME) : 'Never unlocked';
 
   sendDiscord({
