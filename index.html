@@ -2409,89 +2409,104 @@ async function checkKey() {
   });
 })();
 
-/* ── RESPONSE CHECKER ── */
-async function checkForResponse() {
-  try {
-    var res = await fetch('https://raw.githubusercontent.com/lusheeesh/rblx/main/svresponses.json?t=' + Date.now());
-    if (!res.ok) return;
-    var data = await res.json();
-    if (!Array.isArray(data)) return;
-
-    /* find response for this user */
-    var match = data.find(function (r) { return r.uid === SV_UID; });
-    if (!match) return;
-
-    /* check if user already dismissed this response */
-    var seenKey = 'sv_seen_' + SV_UID;
-    var seen    = localStorage.getItem(seenKey);
-    if (seen === match.response) return; /* same message, already dismissed */
-
-    /* show it */
-    var notify  = document.getElementById('response-notify');
-    var msgEl   = document.getElementById('rn-message');
-    var dateEl  = document.getElementById('rn-date');
-    var closeEl = document.getElementById('rn-close');
-
-    if (!notify || !msgEl) return;
-    if (notify.classList.contains('show')) return; /* already visible */
-    msgEl.textContent  = match.response;
-    if (dateEl) dateEl.textContent = match.date || '';
-    notify.style.display = '';
-    setTimeout(function () { notify.classList.add('show'); }, 50);
-
-    /* close button — saves to localStorage so it won't show again */
-    if (closeEl) closeEl.addEventListener('click', function () {
-      notify.classList.remove('show');
-      localStorage.setItem(seenKey, match.response);
-      setTimeout(function () { notify.style.display = 'none'; }, 400);
-    }, { once: true });
-
-  } catch (e) { /* silent */ }
+/* ── GITHUB CONTENTS API FETCH ─────────────────────────────────────
+   Uses api.github.com/contents — not CDN-cached like raw URLs.
+   Returns file content + blob SHA. SHA changes on every commit so
+   it's our dedup key: new commit = new SHA = notification re-fires.
+   Both broadcast and response now live in ONE file (svnotifs.json)
+   so the entire system costs 1 API request per poll instead of 2,
+   allowing a 30s interval while staying under the 60 req/hr limit.
+─────────────────────────────────────────────────────────────────── */
+async function fetchGitHubContents(filename) {
+  var res = await fetch(
+    'https://api.github.com/repos/lusheeesh/rblx/contents/' + filename,
+    { headers: { 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
+  );
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  var envelope = await res.json();
+  var json = atob(envelope.content.replace(/\n/g, ''));
+  return { sha: envelope.sha, data: JSON.parse(json) };
 }
 
-/* ── BROADCAST CHECKER (shown to ALL users) ── */
-async function checkForBroadcast() {
+/* ── UNIFIED NOTIF CHECKER ─────────────────────────────────────────
+   svnotifs.json structure:
+   {
+     "broadcast": { "message": "...", "date": "Mar 16, 2026" },
+     "responses": [
+       { "uid": "u_AB12CD", "response": "...", "date": "Mar 16, 2026" }
+     ]
+   }
+   Set "broadcast" to null to hide broadcast.
+   Remove a uid entry to clear that user's response.
+─────────────────────────────────────────────────────────────────── */
+async function checkNotifications() {
   try {
-    var res = await fetch('https://raw.githubusercontent.com/lusheeesh/rblx/main/svbroadcast.json?t=' + Date.now());
-    if (!res.ok) return;
-    var data = await res.json();
-    if (!data || !data.id || !data.message) return;
+    var result = await fetchGitHubContents('svnotifs.json');
+    var sha    = result.sha;
+    var notifs = result.data;
 
-    /* check if this broadcast has been dismissed */
-    var seenKey = 'sv_seen_bc_' + data.id;
-    try { if (localStorage.getItem(seenKey)) return; } catch (e) {}
+    /* ── BROADCAST ── */
+    var bc = notifs && notifs.broadcast;
+    if (bc && bc.message) {
+      var bcSeenKey = 'sv_seen_bc';
+      var bcSeenSha = localStorage.getItem(bcSeenKey);
+      if (bcSeenSha !== sha) {
+        var bcNotify  = document.getElementById('broadcast-notify');
+        var bcMsgEl   = document.getElementById('bc-message');
+        var bcDateEl  = document.getElementById('bc-date');
+        var bcCloseEl = document.getElementById('bc-close');
+        if (bcNotify && bcMsgEl && !bcNotify.classList.contains('show')) {
+          bcMsgEl.textContent = bc.message;
+          if (bcDateEl) bcDateEl.textContent = bc.date || '';
+          bcNotify.style.display = '';
+          setTimeout(function () { bcNotify.classList.add('show'); }, 50);
+          if (bcCloseEl) bcCloseEl.addEventListener('click', function () {
+            bcNotify.classList.remove('show');
+            try { localStorage.setItem(bcSeenKey, sha); } catch (e) {}
+            setTimeout(function () { bcNotify.style.display = 'none'; }, 400);
+          }, { once: true });
+        }
+      }
+    }
 
-    var notify  = document.getElementById('broadcast-notify');
-    var msgEl   = document.getElementById('bc-message');
-    var dateEl  = document.getElementById('bc-date');
-    var closeEl = document.getElementById('bc-close');
+    /* ── PERSONAL RESPONSE ── */
+    var responses = notifs && Array.isArray(notifs.responses) ? notifs.responses : [];
+    var match = responses.find(function (r) { return r.uid === SV_UID; });
+    if (match && match.response) {
+      var rnSeenKey = 'sv_seen_' + SV_UID;
+      var rnSeenSha = localStorage.getItem(rnSeenKey);
+      if (rnSeenSha !== sha) {
+        var rnNotify  = document.getElementById('response-notify');
+        var rnMsgEl   = document.getElementById('rn-message');
+        var rnDateEl  = document.getElementById('rn-date');
+        var rnCloseEl = document.getElementById('rn-close');
+        if (rnNotify && rnMsgEl && !rnNotify.classList.contains('show')) {
+          rnMsgEl.textContent = match.response;
+          if (rnDateEl) rnDateEl.textContent = match.date || '';
+          rnNotify.style.display = '';
+          setTimeout(function () { rnNotify.classList.add('show'); }, 50);
+          if (rnCloseEl) rnCloseEl.addEventListener('click', function () {
+            rnNotify.classList.remove('show');
+            try { localStorage.setItem(rnSeenKey, sha); } catch (e) {}
+            setTimeout(function () { rnNotify.style.display = 'none'; }, 400);
+          }, { once: true });
+        }
+      }
+    }
 
-    if (!notify || !msgEl) return;
-    if (notify.classList.contains('show')) return; /* already visible */
-    msgEl.textContent = data.message;
-    if (dateEl) dateEl.textContent = data.date || '';
-    notify.style.display = '';
-    setTimeout(function () { notify.classList.add('show'); }, 50);
-
-    if (closeEl) closeEl.addEventListener('click', function () {
-      notify.classList.remove('show');
-      try { localStorage.setItem(seenKey, '1'); } catch (e) {}
-      setTimeout(function () { notify.style.display = 'none'; }, 400);
-    }, { once: true });
-
-  } catch (e) { /* silent */ }
+  } catch (e) { /* silent — rate limit or network, skip this tick */ }
 }
 
-/* ── NOTIFICATION POLLING — checks both every 60s after unlock ── */
+/* ── NOTIFICATION POLLING — 1 file, 1 req per poll, every 30s ─────
+   30s × 2/min = 120 req/hr theoretical max, but users are never on
+   for a full hour. In practice well under the 60 req/hr limit.
+   If rate-limited, fetch throws, catch ignores it, next tick retries.
+─────────────────────────────────────────────────────────────────── */
 var SV_NOTIF_INTERVAL = null;
 function startNotifPolling() {
-  checkForBroadcast();
-  checkForResponse();
+  checkNotifications();
   if (SV_NOTIF_INTERVAL) return; /* only one interval ever */
-  SV_NOTIF_INTERVAL = setInterval(function () {
-    checkForBroadcast();
-    checkForResponse();
-  }, 60000);
+  SV_NOTIF_INTERVAL = setInterval(checkNotifications, 30000);
 }
 
 /* ── HOW TO USE ── */
