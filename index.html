@@ -2810,15 +2810,28 @@ async function checkForResponse() {
 
 /* ══════════════════════════════════════════
    REVOLTZ AUTH + FEEDBACK PANEL
+   Fix: wrapped in DOMContentLoaded so all
+   HTML elements exist before JS runs
 ══════════════════════════════════════════ */
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   var isAdmin      = false;
   var allFeedback  = [];
   var activeFilter = 'all';
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function $id(id) { return document.getElementById(id); }
+
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   // ── Toast ──────────────────────────────────────────────────────────────────
   function rToast(msg, type) {
-    var el = document.getElementById('revoltz-toast');
+    var el = $id('revoltz-toast');
     if (!el) return;
     el.textContent = msg;
     el.className = type || '';
@@ -2839,21 +2852,21 @@ async function checkForResponse() {
 
   function setAdminMode(on) {
     isAdmin = on;
-    var loginBtn = document.getElementById('revoltz-login-btn');
-    if (loginBtn) {
-      loginBtn.textContent = on ? '💬 Feedback' : '⚙';
-      loginBtn.title = on ? 'Open feedback panel' : 'Revoltz access';
+    var btn = $id('revoltz-login-btn');
+    if (btn) {
+      btn.textContent = on ? '💬 Feedback' : '⚙';
+      btn.title = on ? 'Open feedback panel' : 'Revoltz access';
     }
   }
 
   // ── Login modal ───────────────────────────────────────────────────────────
-  var loginOverlay = document.getElementById('revoltz-login-overlay');
-  var loginBtn     = document.getElementById('revoltz-login-btn');
-  var loginClose   = document.getElementById('revoltz-login-close');
-  var pwInput      = document.getElementById('revoltz-pw-input');
-  var submitBtn    = document.getElementById('revoltz-login-submit');
-  var submitTxt    = document.getElementById('revoltz-login-submit-text');
-  var loginError   = document.getElementById('revoltz-login-error');
+  var loginOverlay = $id('revoltz-login-overlay');
+  var loginBtn     = $id('revoltz-login-btn');
+  var loginClose   = $id('revoltz-login-close');
+  var pwInput      = $id('revoltz-pw-input');
+  var submitBtn    = $id('revoltz-login-submit');
+  var submitTxt    = $id('revoltz-login-submit-text');
+  var loginError   = $id('revoltz-login-error');
 
   function openLogin() {
     if (!loginOverlay) return;
@@ -2862,6 +2875,7 @@ async function checkForResponse() {
     if (pwInput) { pwInput.value = ''; pwInput.focus(); }
     if (loginError) loginError.textContent = '';
   }
+
   function closeLogin() {
     if (!loginOverlay) return;
     loginOverlay.classList.remove('open');
@@ -2872,19 +2886,21 @@ async function checkForResponse() {
     if (isAdmin) openFeedbackPanel();
     else openLogin();
   });
-  if (loginClose) loginClose.addEventListener('click', closeLogin);
+
+  if (loginClose)   loginClose.addEventListener('click', closeLogin);
   if (loginOverlay) loginOverlay.addEventListener('click', function (e) {
     if (e.target === loginOverlay) closeLogin();
   });
 
   async function doLogin() {
-    var pw = pwInput ? pwInput.value.trim() : '';
+    if (!pwInput || !submitBtn || !submitTxt || !loginError) return;
+    var pw = pwInput.value.trim();
     if (!pw) return;
-    submitBtn.disabled = true;
+    submitBtn.disabled    = true;
     submitTxt.textContent = 'Checking…';
     loginError.textContent = '';
     try {
-      var res = await fetch('/api/auth/login', {
+      var res  = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -2901,26 +2917,26 @@ async function checkForResponse() {
     } catch {
       loginError.textContent = 'Network error. Try again.';
     } finally {
-      submitBtn.disabled = false;
+      submitBtn.disabled    = false;
       submitTxt.textContent = 'Unlock';
       if (pwInput) pwInput.value = '';
     }
   }
 
   if (submitBtn) submitBtn.addEventListener('click', doLogin);
-  if (pwInput) pwInput.addEventListener('keydown', function (e) {
+  if (pwInput)   pwInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') doLogin();
   });
 
   // ── Feedback panel ────────────────────────────────────────────────────────
-  var fpOverlay    = document.getElementById('feedback-panel-overlay');
-  var fpClose      = document.getElementById('fp-close-btn');
-  var fpLogout     = document.getElementById('fp-logout-btn');
-  var fpRefresh    = document.getElementById('fp-refresh-btn');
-  var fpList       = document.getElementById('fp-list');
-  var fpEmpty      = document.getElementById('fp-empty');
-  var fpLoading    = document.getElementById('fp-loading');
-  var fpFilterBar  = document.getElementById('fp-filter-bar');
+  var fpOverlay   = $id('feedback-panel-overlay');
+  var fpClose     = $id('fp-close-btn');
+  var fpLogout    = $id('fp-logout-btn');
+  var fpRefresh   = $id('fp-refresh-btn');
+  var fpList      = $id('fp-list');
+  var fpEmpty     = $id('fp-empty');
+  var fpLoading   = $id('fp-loading');
+  var fpFilterBar = $id('fp-filter-bar');
 
   function openFeedbackPanel() {
     if (!fpOverlay) return;
@@ -2928,6 +2944,7 @@ async function checkForResponse() {
     document.body.style.overflow = 'hidden';
     loadFeedback();
   }
+
   function closeFeedbackPanel() {
     if (!fpOverlay) return;
     fpOverlay.classList.remove('open');
@@ -2947,6 +2964,13 @@ async function checkForResponse() {
     rToast('Logged out', 'ok');
   });
 
+  // Escape closes whichever panel is open
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (fpOverlay && fpOverlay.classList.contains('open'))    closeFeedbackPanel();
+    if (loginOverlay && loginOverlay.classList.contains('open')) closeLogin();
+  });
+
   // filter pills
   if (fpFilterBar) fpFilterBar.addEventListener('click', function (e) {
     var pill = e.target.closest('.fp-filter-pill');
@@ -2960,8 +2984,7 @@ async function checkForResponse() {
   async function loadFeedback() {
     if (fpLoading) fpLoading.style.display = 'block';
     if (fpEmpty)   fpEmpty.style.display   = 'none';
-    // clear existing items
-    if (fpList) Array.from(fpList.querySelectorAll('.fp-item')).forEach(function (el) { el.remove(); });
+    if (fpList)    Array.from(fpList.querySelectorAll('.fp-item')).forEach(function (el) { el.remove(); });
     try {
       var res = await fetch('/api/feedback', { credentials: 'include' });
       if (res.status === 401) { setAdminMode(false); closeFeedbackPanel(); return; }
@@ -2979,7 +3002,7 @@ async function checkForResponse() {
     Array.from(fpList.querySelectorAll('.fp-item')).forEach(function (el) { el.remove(); });
 
     var filtered = allFeedback.filter(function (f) {
-      if (activeFilter === 'unread') return !f.read;
+      if (activeFilter === 'unread')     return !f.read;
       if (activeFilter === 'suggestion') return (f.title || '').toLowerCase().includes('suggestion');
       if (activeFilter === 'bug')        return (f.title || '').toLowerCase().includes('bug');
       if (activeFilter === 'game')       return (f.title || '').toLowerCase().includes('game');
@@ -2993,14 +3016,13 @@ async function checkForResponse() {
     if (fpEmpty) fpEmpty.style.display = 'none';
 
     filtered.forEach(function (f) {
-      var item = buildFeedbackItem(f);
-      fpList.appendChild(item);
+      fpList.appendChild(buildFeedbackItem(f));
     });
   }
 
   function buildFeedbackItem(f) {
     var el = document.createElement('div');
-    el.className = 'fp-item' + (f.read ? '' : ' unread');
+    el.className  = 'fp-item' + (f.read ? '' : ' unread');
     el.dataset.id = f.id;
 
     var date = '';
@@ -3008,12 +3030,12 @@ async function checkForResponse() {
 
     el.innerHTML =
       '<div class="fp-item-meta">' +
-        '<div class="fp-item-title">' + esc(f.title || 'Feedback') + '</div>' +
+        '<div class="fp-item-title">'  + esc(f.title  || 'Feedback') + '</div>' +
         '<div class="fp-item-uid" title="Click to reply to this user" data-uid="' + esc(f.uid) + '">' + esc(f.uid) + '</div>' +
-        '<div class="fp-item-device">' + esc(f.device || '') + '</div>' +
-        '<div class="fp-item-date">' + date + '</div>' +
+        '<div class="fp-item-device">' + esc(f.device || '')         + '</div>' +
+        '<div class="fp-item-date">'   + date                        + '</div>' +
       '</div>' +
-      '<div class="fp-item-msg">' + esc(f.message || '') + '</div>' +
+      '<div class="fp-item-msg">'      + esc(f.message || '')        + '</div>' +
       '<div class="fp-item-actions">' +
         '<button class="fp-btn fp-btn-primary fp-reply-btn">Reply</button>' +
         (!f.read ? '<button class="fp-btn fp-btn-ghost fp-read-btn">Mark read</button>' : '') +
@@ -3027,26 +3049,16 @@ async function checkForResponse() {
         '</div>' +
       '</div>';
 
-    // click UID to open reply box
-    el.querySelector('.fp-item-uid').addEventListener('click', function () {
-      toggleReply(el, true);
-    });
-
-    // reply button
-    el.querySelector('.fp-reply-btn').addEventListener('click', function () {
-      toggleReply(el);
-    });
-
-    // cancel reply
+    el.querySelector('.fp-item-uid').addEventListener('click', function () { toggleReply(el, true); });
+    el.querySelector('.fp-reply-btn').addEventListener('click', function () { toggleReply(el); });
     el.querySelector('.fp-reply-cancel').addEventListener('click', function () {
       el.querySelector('.fp-reply-area').classList.remove('open');
     });
 
-    // send reply
     el.querySelector('.fp-reply-send').addEventListener('click', async function () {
       var msg = el.querySelector('.fp-reply-input').value.trim();
       if (!msg) return;
-      this.disabled = true;
+      this.disabled    = true;
       this.textContent = 'Sending…';
       try {
         var res = await fetch('/api/respond', {
@@ -3058,7 +3070,6 @@ async function checkForResponse() {
         if (res.ok) {
           rToast('Reply sent to ' + f.uid, 'ok');
           el.querySelector('.fp-reply-area').classList.remove('open');
-          // auto mark as read
           await markRead(f.id, el);
         } else {
           rToast('Failed to send reply', 'err');
@@ -3067,11 +3078,9 @@ async function checkForResponse() {
       finally { this.disabled = false; this.textContent = 'Send Reply'; }
     });
 
-    // mark read
     var readBtn = el.querySelector('.fp-read-btn');
     if (readBtn) readBtn.addEventListener('click', function () { markRead(f.id, el); });
 
-    // delete
     el.querySelector('.fp-delete-btn').addEventListener('click', async function () {
       if (!confirm('Delete this feedback?')) return;
       try {
@@ -3083,9 +3092,7 @@ async function checkForResponse() {
           allFeedback = allFeedback.filter(function (x) { return x.id !== f.id; });
           el.remove();
           rToast('Deleted', 'ok');
-          if (fpList.querySelectorAll('.fp-item').length === 0 && fpEmpty) {
-            fpEmpty.style.display = 'block';
-          }
+          if (fpList.querySelectorAll('.fp-item').length === 0 && fpEmpty) fpEmpty.style.display = 'block';
         } else { rToast('Delete failed', 'err'); }
       } catch { rToast('Network error', 'err'); }
     });
@@ -3116,17 +3123,9 @@ async function checkForResponse() {
     }
   }
 
-  function esc(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
   // run auth check on load
   checkAuth();
-})();
+});
    
 </script>
 
