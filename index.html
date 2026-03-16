@@ -2209,12 +2209,27 @@ async function checkForResponse() {
 /* ── POLLING — starts on unlock, checks every 30s forever ── */
 function startNotificationPolling() {
   if (_pollTimer) return; /* already running, don't double-start */
-  checkForBroadcast();    /* run immediately */
+
+  /* run immediately on unlock */
+  checkForBroadcast();
   checkForResponse();
+
+  /* setInterval as backup for desktop */
   _pollTimer = setInterval(function () {
-    checkForBroadcast();
-    checkForResponse();
-  }, 30000); /* then every 30 seconds */
+    if (document.visibilityState === 'visible') {
+      checkForBroadcast();
+      checkForResponse();
+    }
+  }, 30000);
+
+  /* visibilitychange — fires when user returns to tab on mobile
+     this is the reliable trigger on Android Chrome */
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      checkForBroadcast();
+      checkForResponse();
+    }
+  });
 }
 
 </script>
