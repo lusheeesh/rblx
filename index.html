@@ -268,54 +268,70 @@
 }
 
 /* ─────────────────────────────────────────
-   SUGGESTION BOX
+   FEEDBACK BUTTON
 ───────────────────────────────────────── */
 #suggest-btn {
   position: fixed;
-  bottom: 22px;
-  left: 22px;
+  bottom: 24px;
+  right: 24px;
+  left: auto;
   z-index: 500;
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: 6px;
-  padding: 7px 13px;
-  font-family: var(--f-mono);
-  font-size: 0.68rem;
-  color: var(--c-text2);
-  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, rgba(102,192,244,0.12), rgba(102,192,244,0.06));
+  border: 1px solid rgba(102,192,244,0.35);
+  border-radius: 50px;
+  padding: 10px 18px;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--c-blue);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all var(--tr);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
-  outline: none !important;          /* ← add this */
-  -webkit-tap-highlight-color: transparent;  /* ← add this */
+  gap: 8px;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 20px rgba(102,192,244,0.15), 0 0 0 0 rgba(102,192,244,0.4);
+  animation: suggestPulse 2.8s ease-in-out infinite;
+  user-select: none;
 }
 #suggest-btn:hover {
+  background: var(--c-blue-dim);
   border-color: var(--c-blue-dim);
-  color: var(--c-blue);
-  background: var(--c-bg2);
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(102,192,244,0.35);
+  animation: none;
+  transform: translateY(-2px);
+}
+#suggest-btn:active {
+  transform: translateY(0px);
 }
 #suggest-btn svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   stroke: currentColor;
   fill: none;
   stroke-width: 2;
   stroke-linecap: round;
+  flex-shrink: 0;
 }
 
+/* ─────────────────────────────────────────
+   FEEDBACK OVERLAY
+───────────────────────────────────────── */
 .suggest-overlay {
   position: fixed;
   inset: 0;
   z-index: 900;
-  background: rgba(10,13,18,0.82);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(10,13,18,0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0.25s ease;
@@ -324,27 +340,55 @@
   opacity: 1;
   visibility: visible;
 }
+
+/* ─────────────────────────────────────────
+   FEEDBACK BOX
+───────────────────────────────────────── */
 .suggest-box {
   background: var(--c-bg2);
   border: 1px solid var(--c-border2);
-  border-radius: 10px;
+  border-radius: 12px;
   width: 100%;
-  max-width: 460px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
-  transform: scale(0.93) translateY(16px);
-  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 480px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(102,192,244,0.06);
+  transform: scale(0.93) translateY(18px);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
   overflow: hidden;
+  /* allow scroll on very small screens */
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
 }
 .suggest-overlay.open .suggest-box {
   transform: scale(1) translateY(0);
 }
+
 .suggest-head {
-  padding: 14px 18px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--c-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   background: linear-gradient(135deg, var(--c-bg2), var(--c-bg3));
+  flex-shrink: 0;
+}
+.suggest-head-left {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.suggest-head-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(102,192,244,0.15), rgba(102,192,244,0.05));
+  border: 1px solid rgba(102,192,244,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 .suggest-head-title {
   font-family: var(--f-display);
@@ -353,28 +397,36 @@
   letter-spacing: 0.07em;
   color: var(--c-white);
   text-transform: uppercase;
+  line-height: 1;
 }
 .suggest-head-sub {
   font-family: var(--f-mono);
   font-size: 0.6rem;
   color: var(--c-text3);
-  margin-top: 2px;
+  margin-top: 3px;
   letter-spacing: 0.05em;
 }
+
 .suggest-body {
-  padding: 18px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  overflow-y: auto;
+  flex: 1;
 }
+
+/* ─────────────────────────────────────────
+   TYPE PILLS
+───────────────────────────────────────── */
 .suggest-type-row {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 .stype-pill {
-  padding: 5px 12px;
-  border-radius: 3px;
+  padding: 6px 13px;
+  border-radius: 4px;
   font-family: var(--f-display);
   font-weight: 600;
   font-size: 0.72rem;
@@ -386,70 +438,150 @@
   cursor: pointer;
   transition: all var(--tr);
   outline: none;
+  -webkit-tap-highlight-color: transparent;
+  /* bigger tap target on mobile */
+  min-height: 34px;
+  display: flex;
+  align-items: center;
 }
-.stype-pill:hover { border-color: var(--c-blue-dim); color: var(--c-blue); }
-.stype-pill.active { background: var(--c-blue-dim); border-color: var(--c-blue-dim); color: #fff; }
-.stype-pill.active-bug { background: var(--c-red); border-color: var(--c-red); color: #fff; }
-.stype-pill.active-game { background: var(--c-green); border-color: var(--c-green); color: #fff; }
+.stype-pill:hover        { border-color: var(--c-blue-dim); color: var(--c-blue); background: var(--c-blue-glow2); }
+.stype-pill.active       { background: var(--c-blue-dim);  border-color: var(--c-blue-dim); color: #fff; }
+.stype-pill.active-bug   { background: var(--c-red);       border-color: var(--c-red);      color: #fff; }
+.stype-pill.active-game  { background: var(--c-green);     border-color: var(--c-green);    color: #fff; }
 
+/* ─────────────────────────────────────────
+   TEXTAREA
+───────────────────────────────────────── */
 #suggest-textarea {
   width: 100%;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.25);
   border: 1px solid var(--c-border);
-  border-radius: 4px;
-  padding: 10px 12px;
+  border-radius: 6px;
+  padding: 11px 13px;
   font-family: var(--f-body);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--c-text);
   resize: none;
-  height: 100px;
+  height: 110px;
   outline: none;
-  transition: border-color var(--tr);
+  transition: border-color var(--tr), background var(--tr);
   box-sizing: border-box;
+  line-height: 1.55;
 }
-#suggest-textarea:focus { border-color: var(--c-blue-dim); }
+#suggest-textarea:focus {
+  border-color: var(--c-blue-dim);
+  background: rgba(0,0,0,0.35);
+}
 #suggest-textarea::placeholder { color: var(--c-text3); }
 
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
 .suggest-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .suggest-char {
   font-family: var(--f-mono);
   font-size: 0.62rem;
   color: var(--c-text3);
+  transition: color var(--tr);
 }
 .suggest-char.warn { color: var(--c-red); }
+
 #suggest-submit {
   padding: 2px;
   background: linear-gradient(to right, #47bfff 5%, #1a44c2 60%);
-  border-radius: 2px;
+  border-radius: 4px;
   border: none;
   cursor: pointer;
-  transition: filter 0.2s ease, opacity 0.2s ease;
+  transition: filter 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+  flex-shrink: 0;
 }
-#suggest-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+#suggest-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 #suggest-submit span {
   display: block;
-  padding: 7px 18px;
+  padding: 9px 22px;
   color: #fff;
   font-size: 0.78rem;
   font-family: var(--f-display);
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
-#suggest-submit:hover:not(:disabled) { filter: brightness(1.2); }
+#suggest-submit:hover:not(:disabled) {
+  filter: brightness(1.2);
+  transform: translateY(-1px);
+}
+#suggest-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────
+   SUCCESS STATE
+───────────────────────────────────────── */
 .suggest-success {
   text-align: center;
-  padding: 24px 18px;
+  padding: 32px 20px;
   font-family: var(--f-mono);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--c-green2);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.suggest-success-icon {
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+
+/* ─────────────────────────────────────────
+   MOBILE
+───────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* button moves to bottom center on mobile so thumb can reach it */
+  #suggest-btn {
+    bottom: 16px;
+    right: 50%;
+    transform: translateX(50%);
+    padding: 11px 20px;
+    font-size: 0.8rem;
+    border-radius: 50px;
+  }
+  #suggest-btn:hover {
+    transform: translateX(50%) translateY(-2px);
+  }
+  #suggest-btn:active {
+    transform: translateX(50%) translateY(0);
+  }
+
+  .suggest-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  /* sheet slides up from bottom on mobile */
+  .suggest-box {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+    max-height: 92vh;
+    transform: translateY(100%);
+  }
+  .suggest-overlay.open .suggest-box {
+    transform: translateY(0);
+  }
+  .suggest-head { padding: 14px 16px; }
+  .suggest-body { padding: 16px; }
+  .suggest-type-row { gap: 5px; }
+  .stype-pill { font-size: 0.7rem; padding: 6px 11px; }
+  #suggest-textarea { height: 100px; font-size: 0.875rem; }
 }
 
 :root {
@@ -977,9 +1109,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div class="suggest-overlay" id="suggest-overlay">
   <div class="suggest-box">
     <div class="suggest-head">
-      <div>
-        <div class="suggest-head-title">Send Feedback</div>
-        <div class="suggest-head-sub">Suggestions, bug reports, game requests — all welcome</div>
+      <div class="suggest-head-left">
+        <div class="suggest-head-icon">💬</div>
+        <div>
+          <div class="suggest-head-title">Send Feedback</div>
+          <div class="suggest-head-sub">Suggestions, bug reports, game requests — all welcome</div>
+        </div>
       </div>
       <button class="modal-close" id="suggest-close" aria-label="Close">
         <svg viewBox="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
@@ -999,7 +1134,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
     </div>
     <div class="suggest-success" id="suggest-success">
-      ✓ &nbsp; Sent! Thanks for the feedback.
+      <div class="suggest-success-icon">✅</div>
+      Sent! Thanks for the feedback.
     </div>
   </div>
 </div>
