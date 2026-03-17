@@ -2149,7 +2149,8 @@ async function getDailyKey() {
   try {
     var res = await fetchWithTimeout(KEY_URL + '?t=' + Date.now(), 8000);
     if (!res.ok) throw new Error('status ' + res.status);
-    return (await res.text()).trim();
+    var raw = await res.text();
+    return raw.split('\n').map(function(k) { return k.trim(); }).filter(Boolean);
   } catch (e) {
     console.warn('[SteamVault] Key fetch error:', e.message);
     return null;
@@ -2235,7 +2236,7 @@ async function checkKey() {
     return;
   }
 
-  if (input.toLowerCase() === key.toLowerCase()) {
+  if (key.some(function(k) { return input.toLowerCase() === k.toLowerCase(); })) {
     sendDiscord({
       embeds: [{
         title: '✅ Correct Key Entered',
